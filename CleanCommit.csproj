@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{62558BFB-7106-4580-B1D1-5F8CD9AD5E3B}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>CleanCommitment</RootNamespace>
+    <AssemblyName>CleanCommitment</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Gurobi80.NET">
+      <HintPath>..\..\..\..\..\..\gurobi801\win64\bin\Gurobi80.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="MathNet.Numerics, Version=4.15.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\MathNet.Numerics.4.15.0\lib\net461\MathNet.Numerics.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Serialization" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Experiment.cs" />
+    <Compile Include="Instance\PTDFCalculator2.cs" />
+    <Compile Include="MIP\Objective.cs" />
+    <Compile Include="NewFormulation2.cs" />
+    <Compile Include="MIP\ReserveConstraint.cs" />
+    <Compile Include="MIP\TightGenerationConstraint.cs" />
+    <Compile Include="NewFormulation.cs" />
+    <Compile Include="OldCode\ClusterMIP.cs" />
+    <Compile Include="Instance\ConstraintConfiguration.cs" />
+    <Compile Include="MIP\Constraint.cs" />
+    <Compile Include="MIP\GenerationConstraint.cs" />
+    <Compile Include="Instance\Inflow.cs" />
+    <Compile Include="MIP\LogicConstraint.cs" />
+    <Compile Include="MIP\MinUpDownConstraint.cs" />
+    <Compile Include="MIP\PiecewiseConstraint.cs" />
+    <Compile Include="MIP\PowerBalanceConstraint.cs" />
+    <Compile Include="MIP\RampConstraint.cs" />
+    <Compile Include="MIP\StorageConstraint.cs" />
+    <Compile Include="MIP\TimeDepStartConstraint.cs" />
+    <Compile Include="MIP\TransmissionConstraint.cs" />
+    <Compile Include="MIP\Variables.cs" />
+    <Compile Include="OldCode\ColumnSolver.cs" />
+    <Compile Include="OldCode\CopySolution.cs" />
+    <Compile Include="OldCode\Graph.cs" />
+    <Compile Include="IOUtils.cs" />
+    <Compile Include="OldCode\LPSolver.cs" />
+    <Compile Include="OldCode\MIPSolver.cs" />
+    <Compile Include="Instance\Node.cs" />
+    <Compile Include="OldCode\Population.cs" />
+    <Compile Include="Instance\PiecewiseGeneration.cs" />
+    <Compile Include="Instance\PowerSystem.cs" />
+    <Compile Include="OldCode\Print.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="OldCode\PTDFCalculator.cs" />
+    <Compile Include="Instance\ResGeneration.cs" />
+    <Compile Include="OldCode\Solution.cs" />
+    <Compile Include="OldCode\Solver.cs" />
+    <Compile Include="Instance\StorageUnit.cs" />
+    <Compile Include="MIP\TightSolver.cs" />
+    <Compile Include="Instance\TransmissionLine.cs" />
+    <Compile Include="Instance\Unit.cs" />
+    <Compile Include="SolverOutput.cs" />
+    <Compile Include="Utils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
