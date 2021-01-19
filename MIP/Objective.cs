@@ -83,10 +83,7 @@ namespace CleanCommit.MIP
             GRBLinExpr lorcost = new GRBLinExpr();
             for (int t = 0; t < totalTime; t++)
             {
-                for (int n = 0; n < totalNodes; n++)
-                {
-                    lorcost += Vars.NodalLossOfReserve[n, t] * PS.VOLR;
-                }
+                lorcost += Vars.LossOfReserve[t] * PS.VOLR;
             }
             Model.AddConstr(LORCost == lorcost, "");
         }

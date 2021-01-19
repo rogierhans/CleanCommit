@@ -28,15 +28,16 @@ namespace CleanCommit.MIP
                 for (int s = 0; s < totalStorageUnits; s++)
                 {
                     var StorageUnit = PS.StorageUnits[s];
-                    var inflow = PS.Inflows.FirstOrDefault(unit => unit.StorageID == s);
-                    var inflowValue = inflow != null ? inflow.Inflows[t] : 0;
+                    var inflowValue = StorageUnit.GetInflow(t);
+                   // Console.WriteLine(inflowValue);
+                    var inflowVar = Model.AddVar(0, inflowValue, 0.0, GRB.CONTINUOUS, "auxiliaryVariableStorageInflow_"+t+"_"+s);
                     if (t == 0)
                     {
-                        StorageLevelConstaints[t, s] = Model.AddConstr(Variable.Storage[0, s] == Variable.Charge[0, s] * StorageUnit.ChargeEffiency - Variable.Discharge[0, s] * StorageUnit.DischargeEffiencyInverse + inflowValue, "InitalStorageLevel" + s);
+                        StorageLevelConstaints[t, s] = Model.AddConstr(Variable.Storage[0, s] == Variable.Charge[0, s] * StorageUnit.ChargeEffiency - Variable.Discharge[0, s] * StorageUnit.DischargeEffiencyInverse + inflowVar, "InitalStorageLevel" + s);
                     }
                     else
                     {
-                        StorageLevelConstaints[t, s] = Model.AddConstr(Variable.Storage[t, s] == Variable.Storage[t - 1, s] + Variable.Charge[t, s] * StorageUnit.ChargeEffiency - Variable.Discharge[t, s] * StorageUnit.DischargeEffiencyInverse + inflowValue, "StorageLevel" + t + "s" + s);
+                        StorageLevelConstaints[t, s] = Model.AddConstr(Variable.Storage[t, s] == Variable.Storage[t - 1, s] + Variable.Charge[t, s] * StorageUnit.ChargeEffiency - Variable.Discharge[t, s] * StorageUnit.DischargeEffiencyInverse + inflowVar, "StorageLevel" + t + "s" + s);
                     }
                 }
             }

@@ -13,21 +13,18 @@ namespace CleanCommit.MIP
 
         public override void AddConstraint()
         {
-            for (int n = 0; n < totalNodes; n++)
-            {
 
-                Node node = PS.Nodes[n];
-                for (int t = 0; t < totalTime; t++)
+            for (int t = 0; t < totalTime; t++)
+            {
+                var totalReserve = new GRBLinExpr();
+                for (int u = 0; u < totalUnits; u++)
                 {
-                    var totalReserve = new GRBLinExpr();
-                    for (int u = 0; u < totalUnits; u++)
-                    {
-                       if( node.UnitsIndex.Contains(u))
-                        totalReserve += (Variable.PotentialP[t, u] - Variable.P[t, u]);
-                    }
-                    Model.AddConstr(totalReserve + Variable.NodalLossOfReserve[n, t] >= (node.NodalDemand(t) * PS.RatioReserveDemand), "Reserve_" + n + "_" + t);
+
+                    totalReserve += (Variable.PotentialP[t, u] - Variable.P[t, u]);
                 }
+                Model.AddConstr(totalReserve + Variable.LossOfReserve[t] >=  PS.Reserves[t], "Reserve_" + t);
             }
+
         }
     }
 }

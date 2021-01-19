@@ -26,6 +26,7 @@ namespace CleanCommit
             //model.Set("LogFile", @"C:\Users\4001184\Desktop\Glog.txt");
             model.Set("DisplayInterval", "1");
             model.Set("MIPGap", "0.001");
+            model.Set("Method", "1");
             //model.Set("IntFeasTol", "0.000000001");
         }
         public TightSolver(PowerSystem ps, ConstraintConfiguration cc, double gap)
@@ -59,7 +60,7 @@ namespace CleanCommit
         TightGenerationConstraint saved;
         public virtual void AddConstraints()
         {
-            if (CC.SuperTight)
+            //if (CC.SuperTight)
             {
                 saved = new TightGenerationConstraint(PS, CC, model, Variables);
                 saved.AddConstraint();

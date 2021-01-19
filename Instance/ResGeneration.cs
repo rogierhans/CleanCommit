@@ -9,9 +9,9 @@ namespace CleanCommit.Instance
     class ResGeneration
     {
         public string Name;
-        public int ID;
+        public string ID;
         public List<double> ResValues;
-        public ResGeneration(int id, List<double> resValues,string name)
+        public ResGeneration(string id, List<double> resValues,string name)
         {
             ID = id;
             ResValues = resValues;

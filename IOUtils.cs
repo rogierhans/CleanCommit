@@ -18,9 +18,9 @@ namespace CleanCommit
 
             var lines = U.ReadFile(filenameInstance);
 
-            var units = ParseUnits( GetLineInterval("units", lines).Skip(1).ToList());
-            var storageUnits = ParseStorage( GetLineInterval("storage", lines).Skip(1).ToList());
+            var units = ParseUnits(GetLineInterval("units", lines).Skip(1).ToList());
             var inflows = ParseInflows(GetLineInterval("inflows", lines).Skip(1).ToList(), int.MaxValue);
+            var storageUnits = ParseStorage(GetLineInterval("storage", lines).Skip(1).ToList(), inflows);
             var resGeneration = ParseRESgeneration(GetLineInterval("RESgeneration", lines).Skip(1).ToList(), int.MaxValue);
             var nodes = ParseNodes(GetLineInterval("nodes", lines).Skip(1).ToList());
             ParseDemand(nodes, GetLineInterval("demands", lines).Skip(1).ToList(), int.MaxValue);
@@ -28,24 +28,25 @@ namespace CleanCommit
             var transmissionLinesDC = ParseLinesDC(GetLineInterval("transmissionDC", lines).Skip(1).ToList(), nodes);
             var calc = new NewPTDF(transmissionLinesAC, nodes);
             double[,] ptdf = calc.GetPTDF();
-            return new PowerSystem(filenameInstance.Split('\\').Last(), units, nodes, transmissionLinesAC, transmissionLinesDC, storageUnits, inflows, resGeneration, ptdf);
+            return new PowerSystem(filenameInstance.Split('\\').Last(), units, nodes, transmissionLinesAC, transmissionLinesDC, storageUnits, resGeneration, ptdf);
         }
         internal static PowerSystem GetPowerSystem(string filenameInstance, int limit)
         {
-            
+
             var lines = U.ReadFile(filenameInstance);
 
             var units = ParseUnits(GetLineInterval("units", lines).Skip(1).ToList());
-            var storageUnits = ParseStorage(GetLineInterval("storage", lines).Skip(1).ToList());
             var inflows = ParseInflows(GetLineInterval("inflows", lines).Skip(1).ToList(), limit);
+            var storageUnits = ParseStorage(GetLineInterval("storage", lines).Skip(1).ToList(), inflows);
             var resGeneration = ParseRESgeneration(GetLineInterval("RESgeneration", lines).Skip(1).ToList(), limit);
             var nodes = ParseNodes(GetLineInterval("nodes", lines).Skip(1).ToList());
             ParseDemand(nodes, GetLineInterval("demands", lines).Skip(1).ToList(), limit);
             var transmissionLinesAC = ParseLines(GetLineInterval("transmissionAC", lines).Skip(1).ToList(), nodes);
             var transmissionLinesDC = ParseLinesDC(GetLineInterval("transmissionDC", lines).Skip(1).ToList(), nodes);
             var calc = new NewPTDF(transmissionLinesAC, nodes);
+
             double[,] ptdf = calc.GetPTDF();
-            return new PowerSystem(filenameInstance.Split('\\').Last(), units, nodes, transmissionLinesAC, transmissionLinesDC, storageUnits, inflows, resGeneration, ptdf);
+            return new PowerSystem(filenameInstance.Split('\\').Last(), units, nodes, transmissionLinesAC, transmissionLinesDC, storageUnits, resGeneration, ptdf);
         }
 
         private static void ParseDemand(List<Node> nodes, List<string> lines, int timeStepLimit)
@@ -60,7 +61,7 @@ namespace CleanCommit
             }
         }
 
-        static public List<Unit> ParseUnits( List<string> lines)
+        static public List<Unit> ParseUnits(List<string> lines)
         {
             List<Unit> units = new List<Unit>();
 
@@ -68,7 +69,7 @@ namespace CleanCommit
             {
                 var input = line.Split(';');
                 int i = 0;
-                int id = int.Parse(input[i++]);
+                var id = input[i++];
                 int count = int.Parse(input[i++]);
 
                 var unit = new Unit(id, count);
@@ -126,7 +127,7 @@ namespace CleanCommit
             foreach (var line in lines)
             {
                 var output = line.Split(';');
-                int ID = int.Parse(output[0]);
+                var ID = (output[0]);
                 string name = output[1];
                 List<double> values = GetValues(output[2]).Select(cell => double.Parse(cell)).Take(timeStepLimit).ToList();
 
@@ -207,9 +208,9 @@ namespace CleanCommit
                 string name = input[1];
 
                 // The ifstatement here is incase a region has zero units/storageunits
-                var unitIndices = GetValues(input[2]).Select(index => int.Parse(index)).ToList();
-                var storageIndices = GetValues(input[3]).Select(index => int.Parse(index)).ToList();
-                var RESIndices = GetValues(input[4]).Select(index => int.Parse(index)).ToList();
+                var unitIndices = GetValues(input[2]).Select(index => (index)).ToList();
+                var storageIndices = GetValues(input[3]).Select(index => (index)).ToList();
+                var RESIndices = GetValues(input[4]).Select(index => (index)).ToList();
                 //var demands = lines[5].Split(';').Skip(1 + skipTime).Take(maxTime).Select(demand => double.Parse(demand) * U.DemandFactor).ToList();
                 //var upwardReserves = lines[6].Split(';').Skip(1).Take(maxTime).Select(reserve => double.Parse(reserve)).ToList();
                 //var downwardReserves = lines[7].Split(';').Skip(1).Take(maxTime).Select(reserve => double.Parse(reserve)).ToList();
@@ -269,7 +270,7 @@ namespace CleanCommit
             return transmissionLines;
         }
 
-        static public List<StorageUnit> ParseStorage(List<string> lines)
+        static public List<StorageUnit> ParseStorage(List<string> lines, List<Inflow> inflows)
         {
             List<StorageUnit> storageUnits = new List<StorageUnit>();
 
@@ -279,7 +280,7 @@ namespace CleanCommit
                 int i = 0;
 
 
-                int id = int.Parse(input[i++]);
+                var id = (input[i++]);
                 string name = input[i++];
 
 
@@ -288,10 +289,18 @@ namespace CleanCommit
                 double maxEnergy = double.Parse(input[i++]);
                 double chargeEffiency = double.Parse(input[i++]);
                 double dischargeEffiency = double.Parse(input[i++]);
+                var inflow = inflows.Where(flow => flow.StorageID == id);
+                if (inflow.Count() > 0)
+                {
+                    var storageUnit = new StorageUnit(id, name, maxCharge, maxDischarge, maxEnergy, chargeEffiency, dischargeEffiency, inflow.First().Inflows);
+                    storageUnits.Add(storageUnit);
+                }
+                else
+                {
+                    var storageUnit = new StorageUnit(id, name, maxCharge, maxDischarge, maxEnergy, chargeEffiency, dischargeEffiency, new List<double>());
+                    storageUnits.Add(storageUnit);
+                }
 
-
-                var storageUnit = new StorageUnit(id, name, maxCharge, maxDischarge, maxEnergy, chargeEffiency, dischargeEffiency);
-                storageUnits.Add(storageUnit);
 
             }
 
@@ -313,7 +322,7 @@ namespace CleanCommit
             {
                 var input = line.Split(';');
                 int id = int.Parse(input[0]);
-                int StorageID = int.Parse(input[1]);
+                var StorageID = (input[1]);
                 var values = GetValues(input[2]).Select(value => double.Parse(value)).Take(timeStepLimit).ToList();
                 inflows.Add(new Inflow(id, StorageID, values));
             }

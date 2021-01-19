@@ -42,9 +42,10 @@ namespace CleanCommit.MIP
             var totalCharge = new GRBLinExpr();
 
             var node = PS.Nodes[n];
-            foreach (int s in node.StorageUnitsIndex)
+            foreach (string StorageID in node.StorageUnitIDs)
             {
-                totalCharge += Variable.Charge[t, s];
+                var storageindex = Variable.SUnitID2Index[StorageID];
+                totalCharge += Variable.Charge[t, storageindex];
             }
 
             return totalCharge;
@@ -53,10 +54,11 @@ namespace CleanCommit.MIP
         {
             var totalGeneration = new GRBLinExpr();
             var node = PS.Nodes[nodeIndex];
-            foreach (int u in node.UnitsIndex)
+            foreach (string unitID in node.UnitsIndex)
             {
-                var unit = PS.Units[u];
-                totalGeneration += Variable.P[t, u] + unit.pMin * Variable.Commit[t, u];
+                int index = Variable.UnitID2Index[unitID];
+                var unit = PS.Units[index];
+                totalGeneration += Variable.P[t, index] + unit.pMin * Variable.Commit[t, index];
             }
             return totalGeneration;
         }
@@ -64,9 +66,10 @@ namespace CleanCommit.MIP
         {
             GRBLinExpr ResGeneration = new GRBLinExpr();
             var node = PS.Nodes[nodeIndex];
-            foreach (int r in node.RESindex)
+            foreach (string RESID in node.RESIDs)
             {
-                ResGeneration += Variable.RESDispatch[t, r];
+                var resIndex = Variable.RUnitID2Index[RESID];
+                ResGeneration += Variable.RESDispatch[t, resIndex];
             }
             return ResGeneration;
         }
@@ -74,9 +77,10 @@ namespace CleanCommit.MIP
         {
             var NodalDischarge = new GRBLinExpr();
             var node = PS.Nodes[nodeIndex];
-            foreach (int s in node.StorageUnitsIndex)
+            foreach (string StorageID in node.StorageUnitIDs)
             {
-                NodalDischarge += Variable.Discharge[t, s];
+                var storageindex = Variable.SUnitID2Index[StorageID];
+                NodalDischarge += Variable.Discharge[t, storageindex];
             }
             return NodalDischarge;
         }

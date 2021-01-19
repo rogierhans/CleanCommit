@@ -10,17 +10,17 @@ namespace CleanCommit.Instance
 
     class StorageUnit
     {
-        public int ID;
-        public string Name;
-        public double MaxCharge;
-        public double MaxDischarge;
-        public double MaxEnergy;
-        public double ChargeEffiency;
-        public double DischargeEffiencyInverse;
-        private double DischargeEffiency;
+        readonly public string ID;
+        readonly public string Name;
+        readonly public double MaxCharge;
+        readonly public double MaxDischarge;
+        readonly public double MaxEnergy;
+        readonly public double ChargeEffiency;
+        readonly public double DischargeEffiencyInverse;
+        readonly private double DischargeEffiency;
+        readonly private List<double> Inflow;
 
-
-        public StorageUnit(int iD, string name, double maxCharge, double maxDischarge, double maxEnergy, double chargeEffiency, double dischargeEffiency)
+        public StorageUnit(string iD, string name, double maxCharge, double maxDischarge, double maxEnergy, double chargeEffiency, double dischargeEffiency, List<double> inflow)
         {
             ID = iD;
             Name = name;
@@ -30,6 +30,15 @@ namespace CleanCommit.Instance
             ChargeEffiency = chargeEffiency;
             DischargeEffiency = dischargeEffiency;
             DischargeEffiencyInverse = 1 / dischargeEffiency;
+            Inflow = inflow;
+        }
+
+        public double GetInflow(int t)
+        {
+            if (t < Inflow.Count)
+                return Inflow[t];
+            else
+                return 0;
         }
 
 

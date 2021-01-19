@@ -18,14 +18,15 @@ namespace CleanCommit.Instance
         public List<TransmissionLineAC> LinesAC;
         public List<TransmissionLineDC> LinesDC;
         public List<StorageUnit> StorageUnits;
-        public List<Inflow> Inflows;
+        //public List<Inflow> Inflows;
         public double[,] PDTF;
         public double VOLL = 10000;
         public double VOLR = 1000;
-        public double RatioReserveDemand = 0.1;
+        public List<double> Reserves;
+        private double RatioReserveDemand = 0.01;
         //public ConstraintConfiguration ConstraintConfiguration;
 
-        public PowerSystem(string name, List<Unit> units, List<Node> nodes, List<TransmissionLineAC> linesAC, List<TransmissionLineDC> linesDC, List<StorageUnit> storageUnits, List<Inflow> inflows, List<ResGeneration> resgenerations, double[,] pDTF)
+        public PowerSystem(string name, List<Unit> units, List<Node> nodes, List<TransmissionLineAC> linesAC, List<TransmissionLineDC> linesDC, List<StorageUnit> storageUnits, List<ResGeneration> resgenerations, double[,] pDTF)
         {
             Name = name;
             Units = units;
@@ -35,30 +36,45 @@ namespace CleanCommit.Instance
             LinesDC = linesDC;
             StorageUnits = storageUnits;
             PDTF = pDTF;
-            Inflows = inflows;
+            Reserves = GetTotalDemand().Select(x => x * RatioReserveDemand).ToList();
         }
 
 
-        public void UnCluster()
+        public List<double> GetTotalDemand()
         {
-            List<Unit> allNewUnits = new List<Unit>();
-            int ID = 0;
+            Dictionary<int, double> time2Demand = new Dictionary<int, double>();
             foreach (var node in Nodes)
             {
-                var unitNewIndices = new List<int>();
-                foreach (var unitIndex in node.UnitsIndex)
-                {
-                    var unit = Units[unitIndex];
-                    int count = unit.Count;
-                    var newUnits = unit.CreateCopies(ID, count);
-                    allNewUnits.AddRange(newUnits);
-                    unitNewIndices.AddRange(newUnits.Select(u => u.ID));
-                    ID = ID + count;
-                }
-                node.UnitsIndex = unitNewIndices;
+                if (node.Demand != null)
+                    for (int t = 0; t < node.Demand.Count; t++)
+                    {
+                        if (!time2Demand.ContainsKey(t)) { time2Demand[t] = 0; }
+                        time2Demand[t] += node.Demand[t];
+                    }
             }
-            Units = allNewUnits;
+            return time2Demand.Values.ToList();
         }
+
+        //public void UnCluster()
+        //{
+        //    List<Unit> allNewUnits = new List<Unit>();
+        //    int ID = 0;
+        //    foreach (var node in Nodes)
+        //    {
+        //        var unitNewIndices = new List<int>();
+        //        foreach (var unitIndex in node.UnitsIndex)
+        //        {
+        //            var unit = Units[unitIndex];
+        //            int count = unit.Count;
+        //            var newUnits = unit.CreateCopies(ID, count);
+        //            allNewUnits.AddRange(newUnits);
+        //            unitNewIndices.AddRange(newUnits.Select(u => u.ID));
+        //            ID = ID + count;
+        //        }
+        //        node.UnitsIndex = unitNewIndices;
+        //    }
+        //    Units = allNewUnits;
+        //}
 
         public void PeturbDemand(double factor)
         {
@@ -66,29 +82,18 @@ namespace CleanCommit.Instance
             Nodes.ForEach(node => node.PeturbDemand(Rng, factor));
         }
 
-        public double TotalDemand() {
+        public double TotalDemand()
+        {
             return Nodes.Where(node => node.Demand != null).Sum(node => node.Demand.Sum());
         }
 
-        private void AddResForCopperPlate(Dictionary<string, ResGeneration> dict, string resName, ResGeneration generation)
-        {
-            if (!dict.ContainsKey(resName))
-            {
-                dict[resName] = generation;
-            }
-            else
-            {
-                dict[resName].CombineGeneration(generation);
-            }
-
-        }
 
         public override string ToString()
         {
             return Name.Split('.').First() + RatioReserveDemand;//+ ConstraintConfiguration;
         }
 
-        public  string NameOK()
+        public string NameOK()
         {
             return Name.Split('.').First();// + PercentageDemandForReserve;//+ ConstraintConfiguration;
         }
@@ -127,6 +132,17 @@ namespace CleanCommit.Instance
         //    }
 
         //}
+        public PowerSystem GetPowerSystemAtNode(Node node, List<double> nodalInjection, List<double> nodalReserve)
+        {
+            var newNode  = node.CopyWithExport(nodalInjection);
+            var newUnits = Units.Where(unit => node.UnitsIndex.Contains(unit.ID)).ToList();
+            var newRES = ResGenerations.Where(unit => node.RESIDs.Contains(unit.ID)).ToList();
+            var newStore = StorageUnits.Where(unit => node.StorageUnitIDs.Contains(unit.ID)).ToList();
+            var newPS = new PowerSystem("", newUnits, new List<Node>() { newNode }, new List<TransmissionLineAC>(), new List<TransmissionLineDC>(), newStore, newRES, new double[0, 0]);
+            newPS.Reserves = nodalReserve.ToList();
+            return newPS;
+        }
+
         public void GetTableUnits()
         {
             ;

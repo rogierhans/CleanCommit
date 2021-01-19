@@ -30,12 +30,16 @@ namespace CleanCommit
 
         public void TestGA10()
         {
-            string filename = @"C:\Users\4001184\Google Drive\Data\Github\ACDCESM.uc";
-            var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, false, 1, false);
+            //string filename = @"C:\Users\4001184\Google Drive\Data\Github\ACDCESM.uc";
+            string filename = @"C:\Users\Rogier\Google Drive\Data\Github\ACDCESM.uc";
+            var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false);
             //CC.Adecuacy = true;
             Console.WriteLine(filename);
-            CC.SetLimits(0, 672);
-            PowerSystem PowerSystem = IOUtils.GetPowerSystem(filename);
+            CC.SetLimits(0, 24);
+            PowerSystem PS = IOUtils.GetPowerSystem(filename);
+            var newPS = PS.GetPowerSystemAtNode(PS.Nodes.First(), new double[24].ToList(), new double[24].ToList());
+               
+
             //PowerSystem.Units.ForEach(unit => unit.ReduceLimitHACK());
             //double multiplier = LossOfLoadDemandIncrement(PowerSystem, CC);
             //CC.DemandMultiplier = multiplier;
@@ -44,30 +48,30 @@ namespace CleanCommit
             Run();
             void Run()
             {
-                TightSolver TS = new TightSolver(PowerSystem, CC);
+                TightSolver TS = new TightSolver(newPS, CC);
                 TS.ConfigureModel();
                 var output = TS.Solve2(36000);
                 //Console.ReadLine();
-                output.WriteToCSV(@"C:\Users\4001184\Desktop\DesktopOutput\","");
+                output.WriteToCSV(@"C:\Users\Rogier\Desktop\DesktopOutput\","");
             }
 
-            void Transmission() {
-                TightSolver TS = new TightSolver(PowerSystem, CC);
-                TS.ConfigureModel();
-                var injections= TS.GetTransmissionOutput(600);
-                List<string> Lines = new List<string>();
-                for (int n = 0; n < injections.GetLength(0); n++)
-                {
-                    string line = "";
-                    for (int t = 0; t < injections.GetLength(1); t++)
-                    {
-                        line += Math.Round(injections[n, t]) + "\t";
-                    }
-                    Console.WriteLine(line);
-                    Lines.Add(line);
-                }
-                File.WriteAllLines(@"C:\Users\Rogier\Desktop\DesktopOutput\" + "transsolution.csv", Lines);
-            }
+            //void Transmission() {
+            //    TightSolver TS = new TightSolver(PowerSystem, CC);
+            //    TS.ConfigureModel();
+            //    var injections= TS.GetTransmissionOutput(600);
+            //    List<string> Lines = new List<string>();
+            //    for (int n = 0; n < injections.GetLength(0); n++)
+            //    {
+            //        string line = "";
+            //        for (int t = 0; t < injections.GetLength(1); t++)
+            //        {
+            //            line += Math.Round(injections[n, t]) + "\t";
+            //        }
+            //        Console.WriteLine(line);
+            //        Lines.Add(line);
+            //    }
+            //    File.WriteAllLines(@"C:\Users\Rogier\Desktop\DesktopOutput\" + "transsolution.csv", Lines);
+            //}
 
         }
         public void TestRCUC200()

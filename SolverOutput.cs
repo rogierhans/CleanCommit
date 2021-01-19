@@ -137,7 +137,7 @@ namespace CleanCommit
             lines.AddRange(MArrayToString("TotalReserve", TotalReserve));
             lines.AddRange(MArrayToString("ResDispatch", Variables.RESDispatch));
             lines.AddRange(MArrayToString("NodalLossOfLoad", Variables.NodalLossOfLoad));
-            lines.AddRange(MArrayToString("NodalLossOfReserve", Variables.NodalLossOfReserve));
+            lines.AddRange(MArrayToString("NodalLossOfReserve", Variables.LossOfReserve.Select(x => x.X).ToArray()));
             lines.AddRange(MArrayToString("StorageLevel", Variables.Storage));
             lines.AddRange(MArrayToString("StorageCharge", Variables.Charge));
             lines.AddRange(MArrayToString("StorageDischarge", Variables.Discharge));

@@ -14,24 +14,38 @@ namespace CleanCommit.Instance
         public string Name;
 
 
-        public List<int> UnitsIndex;
-        public List<int> StorageUnitsIndex;
-        public List<int> RESindex;
+        public List<string> UnitsIndex;
+        public List<string> StorageUnitIDs;
+        public List<string> RESIDs;
         public List<double> Demand;
         //public List<double> SpinningReservesUP;
         //public List<double> SpinningReservesDown;
 
 
-        public Node(int iD, string name, List<int> unitsIndex, List<int> storageUnitsIndex, List<int> resindex)
+        public Node(int iD, string name, List<string> unitsIndex, List<string> storageUnitsIndex, List<string> resindex)
         {
             ID = iD;
             Name = name;
             UnitsIndex = unitsIndex;
-            StorageUnitsIndex = storageUnitsIndex;
-            RESindex = resindex;
+            StorageUnitIDs = storageUnitsIndex;
+            RESIDs = resindex;
             //Demand = demand;
             //SpinningReservesUP = spinningReservesUP;
             // SpinningReservesDown = spinningReservesDown;
+        }
+
+        public Node CopyWithExport(List<double> Export)
+        {
+            var newNode = new Node(ID, Name, UnitsIndex, StorageUnitIDs, RESIDs);
+            if (Demand == null)
+            {
+                newNode.Demand = Export;
+            }
+            else
+            {
+                newNode.Demand = Demand.Zip(Export, (a, b) => a + b).ToList();
+            }
+            return newNode;
         }
 
         public void PeturbDemand(Random RNG, double factor)
@@ -83,7 +97,7 @@ namespace CleanCommit.Instance
         public void PrintStorage()
         {
             Console.WriteLine("StorageUnits {0}:", Name);
-            foreach (var storageUnit in StorageUnitsIndex)
+            foreach (var storageUnit in StorageUnitIDs)
             {
                 Console.WriteLine(storageUnit);
             }

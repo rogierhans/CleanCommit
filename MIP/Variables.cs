@@ -24,8 +24,8 @@ namespace CleanCommit.MIP
         public GRBVar[,] Charge; // time x storageunits
         public GRBVar[,] Discharge; // time x storageunits
         public GRBVar[,] Storage;  // time x storageunits
-       //public GRBVar[,] Inflows; // time x inflow
-        public GRBVar[,] NodalLossOfReserve; // node x time
+                                   //public GRBVar[,] Inflows; // time x inflow
+        public GRBVar[] LossOfReserve; // node x time
         public GRBVar[,] NodalLossOfLoad; // node x time
         public GRBVar[,] NodalInjectionAC; // node x time
         public GRBVar[,] NodalInjectionDC; // node x time
@@ -39,9 +39,15 @@ namespace CleanCommit.MIP
         protected int totalLinesAC;
         protected int totalLinesDC;
         protected int totalStorageUnits;
-        protected int totalInflows;
-        protected int totatRES;
+        // protected int totalInflows;
+        protected int totalRES;
         protected int totalPiecewiseSegments;
+
+
+        //helping
+        public Dictionary<string, int> UnitID2Index;
+        public Dictionary<string, int> SUnitID2Index;
+        public Dictionary<string, int> RUnitID2Index;
 
         protected GRBModel Model;
         public PowerSystem PS;
@@ -62,11 +68,34 @@ namespace CleanCommit.MIP
             totalLinesAC = PS.LinesAC.Count;
             totalLinesDC = PS.LinesDC.Count;
             totalStorageUnits = PS.StorageUnits.Count;
-            totalInflows = PS.Inflows.Count;
-            totatRES = PS.ResGenerations.Count;
+            // totalInflows = PS.Inflows.Count;
+            totalRES = PS.ResGenerations.Count;
             totalPiecewiseSegments = CC.PiecewiseSegments;
             PDTF = PS.PDTF;
             Type = CC.Relax ? GRB.CONTINUOUS : GRB.BINARY;
+            CreateHelperDictionary();
+        }
+
+        private void CreateHelperDictionary()
+        {
+            UnitID2Index = new Dictionary<string, int>();
+            for (int u = 0; u < totalUnits; u++)
+            {
+                var unit = PS.Units[u];
+                UnitID2Index[unit.ID] = u; 
+            }
+            SUnitID2Index = new Dictionary<string, int>();
+            for (int s = 0; s < totalStorageUnits; s++)
+            {
+                var storageUnit = PS.StorageUnits[s];
+                SUnitID2Index[storageUnit.ID] = s;
+            }
+            RUnitID2Index = new Dictionary<string, int>();
+            for (int r = 0; r < totalRES; r++)
+            {
+                var RESunit = PS.ResGenerations[r];
+                RUnitID2Index[RESunit.ID] = r;
+            }
         }
 
         public void IntialiseVariables()
@@ -117,10 +146,10 @@ namespace CleanCommit.MIP
         private void AddRESDispatch()
         {
 
-            RESDispatch = new GRBVar[totalTime, totatRES];
+            RESDispatch = new GRBVar[totalTime, totalRES];
             for (int t = 0; t < totalTime; t++)
             {
-                for (int r = 0; r < totatRES; r++)
+                for (int r = 0; r < totalRES; r++)
                 {
                     var RES = PS.ResGenerations[r];
                     RESDispatch[t, r] = Model.AddVar(0, RES.ResValues[t], 0.0, GRB.CONTINUOUS, "RES_" + t + "_" + r);
@@ -159,16 +188,17 @@ namespace CleanCommit.MIP
         private void AddNodalVariables()
         {
             NodalLossOfLoad = new GRBVar[totalNodes, totalTime];
-            NodalLossOfReserve = new GRBVar[totalNodes, totalTime];
+            LossOfReserve = new GRBVar[totalTime];
             NodalInjectionAC = new GRBVar[totalNodes, totalTime];
             NodalInjectionDC = new GRBVar[totalNodes, totalTime];
             for (int t = 0; t < totalTime; t++)
             {
+                LossOfReserve[t] = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalLoR_" + t);
                 for (int n = 0; n < totalNodes; n++)
                 {
                     var node = PS.Nodes[n];
-                    NodalLossOfLoad[n, t] = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalLoL_" + n + "_"+ t);
-                    NodalLossOfReserve[n, t] = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalLoR_" + n + "_" + t);
+                    NodalLossOfLoad[n, t] = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalLoL_" + n + "_" + t);
+
                     NodalInjectionAC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionAC_" + t);
                     NodalInjectionDC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionDC_" + t);
                 }

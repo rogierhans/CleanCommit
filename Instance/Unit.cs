@@ -9,7 +9,7 @@ namespace CleanCommit.Instance
     public class Unit
     {
         //unique number
-        public int ID;
+        public string ID;
 
         //name
         public string Name;
@@ -48,8 +48,30 @@ namespace CleanCommit.Instance
         public double VSC;
         public double Lambda;
 
+        public Unit(string iD, string name, int count, double pMin, double pMax, double a, double b, double c, double rU, double rD, double sU, double sD, int minUpTime, int minDownTime, double[] startCostInterval, int[] startInterval, double fSC, double vSC, double lambda)
+        {
+            ID = iD;
+            Name = name;
+            Count = count;
+            this.pMin = pMin;
+            this.pMax = pMax;
+            A = a;
+            B = b;
+            C = c;
+            RU = (int)Math.Min(rU, pMax);
+            RD = (int)Math.Min(rD, pMax);
+            SU = (int)Math.Min(sU, pMax);
+            SD = (int)Math.Min(sD, pMax);
+            this.minUpTime = Math.Max(2, minUpTime);
+            this.minDownTime = Math.Max(2, minDownTime);
+            StartCostInterval = startCostInterval;
+            StartInterval = startInterval;
+            FSC = fSC;
+            VSC = vSC;
+            Lambda = lambda;
+        }
 
-        public Unit(int id, int count)
+        public Unit(string id, int count)
         {
             ID = id;
             Count = count;
@@ -57,26 +79,26 @@ namespace CleanCommit.Instance
         }
 
 
-        public List<Unit> CreateCopies(int startID, int count)
-        {
-            List<Unit> Copies = new List<Unit>();
-            for (int i = startID; i < startID + count; i++)
-            {
-                Copies.Add(Copy(i));
-            }
-            return Copies;
-        }
-        public Unit Copy(int newID)
-        {
-            var newUnit = new Unit(newID, 1);
-            newUnit.SetGenerationLimits(pMin, pMax);
-            newUnit.SetGenerationCost(A, B, C);
-            newUnit.SetRampLimits(RU, RD, SU, SD);
-            newUnit.SetMinTime(minDownTime, minUpTime);
-            newUnit.SetSUInterval(StartCostInterval, StartInterval);
-            //newUnit.CreateUniformPiecewiseFunction(CC.PiecewiseSegments);
-            return newUnit;
-        }
+        //public List<Unit> CreateCopies(int startID, int count)
+        //{
+        //    List<Unit> Copies = new List<Unit>();
+        //    for (int i = startID; i < startID + count; i++)
+        //    {
+        //        Copies.Add(Copy(i));
+        //    }
+        //    return Copies;
+        //}
+        //public Unit Copy(int newID)
+        //{
+        //    var newUnit = new Unit(newID, 1);
+        //    newUnit.SetGenerationLimits(pMin, pMax);
+        //    newUnit.SetGenerationCost(A, B, C);
+        //    newUnit.SetRampLimits(RU, RD, SU, SD);
+        //    newUnit.SetMinTime(minDownTime, minUpTime);
+        //    newUnit.SetSUInterval(StartCostInterval, StartInterval);
+        //    //newUnit.CreateUniformPiecewiseFunction(CC.PiecewiseSegments);
+        //    return newUnit;
+        //}
 
 
         public void SetGenerationLimits(double pMin, double pMax)
@@ -93,17 +115,15 @@ namespace CleanCommit.Instance
             C = c;
         }
 
-        public void SetRampLimits(double rampUp, double rampDown, double startUp, double shutDown)
+        public void SetRampLimits(double rU, double rD, double sU, double sD)
         {
 
-            RU = (int)Math.Min(rampUp, pMax);
-            RD = (int)Math.Min(rampDown, pMax);
-            SU = (int)Math.Min(startUp, pMax);
-            SD = (int)Math.Min(shutDown, pMax);
+            RU = (int)Math.Min(rU, pMax);
+            RD = (int)Math.Min(rD, pMax);
+            SU = (int)Math.Min(sU, pMax);
+            SD = (int)Math.Min(sD, pMax);
         }
 
-        public int RealMinUptime;
-        public int RealMinDowntime;
         public void SetMinTime(int minUpTime, int minDownTime)
         {
             if (minUpTime < 1 || minDownTime < 1)
@@ -114,8 +134,6 @@ namespace CleanCommit.Instance
             //Console.WriteLine("error MinimumUP/DOWNTime max 2 ");
             this.minUpTime = Math.Max(2, minUpTime);
             this.minDownTime = Math.Max(2, minDownTime);
-            RealMinUptime = this.minUpTime;
-            RealMinDowntime = this.minDownTime;
         }
 
         public void SetSUInterval(double[] startCostInterval, int[] startInterval)
