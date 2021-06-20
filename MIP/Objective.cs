@@ -8,7 +8,7 @@ using CleanCommit.Instance;
 using System.Diagnostics;
 namespace CleanCommit.MIP
 {
-    class Objective
+    public class Objective
     {
 
         public GRBLinExpr CurrentObjective;
@@ -51,13 +51,119 @@ namespace CleanCommit.MIP
             //Objective += GenerationCostVariable + CycleCostVariable + LOLCostVariable;
             if (CC.Adequacy)
             {
-                CurrentObjective += LOLCost;
+                CurrentObjective += LOLCost + LORCost;
             }
             else
             {
                 CurrentObjective += GenerationCost + CycleCost + LOLCost + LORCost;
             }
             Model.SetObjective(CurrentObjective, GRB.MINIMIZE);
+        }
+
+        public void OnlyAnalyses()
+        {
+            AltObjective = new GRBLinExpr();
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int u = 0; u < totalUnits; u++)
+                {
+
+                    Unit unit = PS.Units[u];
+                    if (unit.PrintType == "GAS")
+                    {
+                        AltObjective += Vars.P[t, u];
+                    }
+                    //Console.WriteLine(Vars.PiecewiseGeneration[u]);
+                }
+            }
+        }
+
+        public void OnlyAnalysesCO2()
+        {
+            AltObjective = new GRBLinExpr();
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int u = 0; u < totalUnits; u++)
+                {
+
+                    Unit unit = PS.Units[u];
+                    AltObjective += Vars.P[t, u] * unit.CO2Variable + Vars.Commit[t, u] * unit.CO2Fixed;
+                }
+            }
+        }
+
+        public void AddCO2ObjectiveMin()
+        {
+            AltObjective = new GRBLinExpr();
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int u = 0; u < totalUnits; u++)
+                {
+
+                    Unit unit = PS.Units[u];
+                    AltObjective += Vars.P[t, u] * unit.CO2Variable + Vars.Commit[t, u] * unit.CO2Fixed;
+
+                    //Console.WriteLine(Vars.PiecewiseGeneration[u]);
+                }
+            }
+            Model.SetObjective(AltObjective, GRB.MINIMIZE);
+        }
+
+        public void AddCO2ObjectiveMax()
+        {
+            AltObjective = new GRBLinExpr();
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int u = 0; u < totalUnits; u++)
+                {
+
+                    Unit unit = PS.Units[u];
+                    AltObjective += Vars.P[t, u] * unit.CO2Variable + Vars.Commit[t, u] * unit.CO2Fixed;
+
+                    //Console.WriteLine(Vars.PiecewiseGeneration[u]);
+                }
+            }
+            Model.SetObjective(AltObjective, GRB.MAXIMIZE);
+        }
+
+
+        public void AddAlternativeObjective()
+        {
+            AltObjective = new GRBLinExpr();
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int u = 0; u < totalUnits; u++)
+                {
+
+                    Unit unit = PS.Units[u];
+                    if (unit.PrintType == "GAS")
+                    {
+                        AltObjective += Vars.P[t, u];
+                    }
+                    //Console.WriteLine(Vars.PiecewiseGeneration[u]);
+                }
+            }
+            Model.SetObjective(AltObjective, GRB.MINIMIZE);
+        }
+
+        public GRBLinExpr AltObjective;
+        public void AddAlternativeObjectiveMax()
+        {
+            AltObjective = new GRBLinExpr();
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int u = 0; u < totalUnits; u++)
+                {
+
+                    Unit unit = PS.Units[u];
+                    if (unit.PrintType == "GAS")
+                    {
+                        AltObjective += Vars.P[t, u];
+                    }
+                    //Console.WriteLine(Vars.PiecewiseGeneration[u]);
+                }
+            }
+            Model.SetObjective(AltObjective, GRB.MAXIMIZE);
         }
 
         private void LinkLossOfLoad()
@@ -69,8 +175,10 @@ namespace CleanCommit.MIP
             {
                 for (int n = 0; n < totalNodes; n++)
                 {
-
-                    lolCost += Vars.NodalLossOfLoad[n, t] * PS.VOLL;
+                    if (CC.Adequacy)
+                        lolCost += Vars.NodalLossOfLoad[n, t] * 10;
+                    else
+                        lolCost += Vars.NodalLossOfLoad[n, t] * PS.VOLL;
 
                 }
             }
@@ -83,7 +191,10 @@ namespace CleanCommit.MIP
             GRBLinExpr lorcost = new GRBLinExpr();
             for (int t = 0; t < totalTime; t++)
             {
-                lorcost += Vars.LossOfReserve[t] * PS.VOLR;
+                if (CC.Adequacy)
+                    lorcost += Vars.LossOfReserve[t];
+                else
+                    lorcost += Vars.LossOfReserve[t] * PS.VOLR;
             }
             Model.AddConstr(LORCost == lorcost, "");
         }

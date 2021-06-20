@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CleanCommit.Instance
 {
-    class TransmissionLineAC
+    public class TransmissionLineAC
     {
         public Node From;
         public Node To;
@@ -26,7 +26,7 @@ namespace CleanCommit.Instance
         }
 
     }
-    class TransmissionLineDC
+    public class TransmissionLineDC
     {
         public Node From;
         public Node To;

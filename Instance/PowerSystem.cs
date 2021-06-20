@@ -8,7 +8,7 @@ using Gurobi;
 
 namespace CleanCommit.Instance
 {
-    class PowerSystem
+    public class PowerSystem
     {
 
         public string Name;
@@ -23,7 +23,7 @@ namespace CleanCommit.Instance
         public double VOLL = 10000;
         public double VOLR = 1000;
         public List<double> Reserves;
-        private double RatioReserveDemand = 0.01;
+        private double RatioReserveDemand = 0;//0.01;
         //public ConstraintConfiguration ConstraintConfiguration;
 
         public PowerSystem(string name, List<Unit> units, List<Node> nodes, List<TransmissionLineAC> linesAC, List<TransmissionLineDC> linesDC, List<StorageUnit> storageUnits, List<ResGeneration> resgenerations, double[,] pDTF)
@@ -36,7 +36,7 @@ namespace CleanCommit.Instance
             LinesDC = linesDC;
             StorageUnits = storageUnits;
             PDTF = pDTF;
-            Reserves = GetTotalDemand().Select(x => x * RatioReserveDemand).ToList();
+            Reserves = GetTotalDemand().Select(x => x * RatioReserveDemand).ToList(); 
         }
 
 
@@ -53,6 +53,9 @@ namespace CleanCommit.Instance
                     }
             }
             return time2Demand.Values.ToList();
+        }
+        public double GetReserve(int t) {
+            return Reserves[t % Reserves.Count()];
         }
 
         //public void UnCluster()
@@ -135,9 +138,9 @@ namespace CleanCommit.Instance
         public PowerSystem GetPowerSystemAtNode(Node node, List<double> nodalInjection, List<double> nodalReserve)
         {
             var newNode  = node.CopyWithExport(nodalInjection);
-            var newUnits = Units.Where(unit => node.UnitsIndex.Contains(unit.ID)).ToList();
-            var newRES = ResGenerations.Where(unit => node.RESIDs.Contains(unit.ID)).ToList();
-            var newStore = StorageUnits.Where(unit => node.StorageUnitIDs.Contains(unit.ID)).ToList();
+            var newUnits = node.Units;
+            var newRES = node.RES;
+            var newStore = node.StorageUnits;
             var newPS = new PowerSystem("", newUnits, new List<Node>() { newNode }, new List<TransmissionLineAC>(), new List<TransmissionLineDC>(), newStore, newRES, new double[0, 0]);
             newPS.Reserves = nodalReserve.ToList();
             return newPS;
@@ -188,6 +191,73 @@ namespace CleanCommit.Instance
             lines.Add("\\hline \\end{tabular}}");
             lines.Add("\\end{table}");
             U.Write(@"E:\Table\InstancesTable\all", lines);
+        }
+        public void Dump() {
+            Nodes.ForEach(node => node.WriteInfo(LinesDC, LinesAC));
+        }
+
+
+
+
+        public void WriteToFile(string name, Node n, List<double> injection, int totalT)
+        {
+
+            List<string> lines = new List<string>();
+            bool quadratic = Units.Where(unit => unit.C >= 0.001).Count() > 0;
+            bool timeDep = Units[0].StartCostInterval.Count() > 1 || Units[0].StartCostInterval[0] == -1;
+            bool transmission = false;
+
+            AddToList(lines, "type", new List<string>() { "quadratic=" + quadratic, "timeDep=" + timeDep, "transmission=" + transmission, "time=" + Nodes[0].Demand.Count() });
+            string unitHeader = "ID;Count;pMin;pMax;a;b;c;RU;RD;SU;SD;MinUp;MinDown;FSC;VSC;Lambda;SCV;SCI";
+            AddToList(lines, "units", n.Units.Select(unit => unit.ToFile()).ToList(), unitHeader);
+            string storageHeader = "ID;Name;Max Charge;Max Discharge;Max Enenergy;Charge Efficiency;Discharge Efficiency";
+            AddToList(lines, "storage", n.StorageUnits.Select(sUnit => sUnit.ToFile()).ToList(), storageHeader);
+            string infowheader = "ID;Storage ID; Inflow Values";
+            AddToList(lines, "inflows", n.StorageUnits.Select(su => "0" + ";" + su.ID + ";[" + String.Join(":", su.Inflow) + "]").ToList(), infowheader);
+            string RESHeader = "ID;Name; RES Values";
+            AddToList(lines, "RESgeneration", n.RES.Select(res => res.ToFile()).ToList(), RESHeader);
+            string demandHeader = "ID;Node ID;Demand Values";
+            List<double> newDemand = new List<double>();
+            for (int t = 0; t < totalT; t++)
+            {
+                newDemand.Add(Math.Round(n.NodalDemand(t) - injection[t],3));
+            }
+            AddToList(lines, "demands", new List<string>() { 0 + ";" + 0 + ";[" + String.Join(":", newDemand) + "]" } , demandHeader);
+            string nodeHeader = "ID;Name;Unit IDs;Storage IDs;RES IDs";
+            AddToList(lines, "nodes", new List<string>() { n.ToFile() }, nodeHeader);
+            //lines.Add(b("nodes"));
+            //Nodes.ForEach(node => { lines.AddRange(node.ToFile()); });
+            //lines.Add(e("nodes"));
+
+            //Utils.UnitsBin.AddRange(Units);
+            File.WriteAllLines( @"C:\Users\Rogier\Desktop\TransTemp\" + name + ".uc", lines);
+
+            //File.WriteAllLines(Utils.Folder + @"\NewInstances\" + IOBas.year + IOBas.stats + ".uc", lines);
+        }
+
+        public void AddToList(List<string> lines, string name, List<string> linesToAdd)
+        {
+            if (linesToAdd.Count == 0) return;
+            lines.Add(B(name));
+            lines.AddRange(linesToAdd);
+            lines.Add(E(name));
+        }
+        public void AddToList(List<string> lines, string name, List<string> linesToAdd, string header)
+        {
+            if (linesToAdd.Count == 0) return;
+            lines.Add(B(name));
+            lines.Add(header);
+            lines.AddRange(linesToAdd);
+            lines.Add(E(name));
+        }
+
+        public string B(string input)
+        {
+            return "<" + input + ">";
+        }
+        public string E(string input)
+        {
+            return "</" + input + ">";
         }
     }
 }

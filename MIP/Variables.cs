@@ -7,7 +7,7 @@ using Gurobi;
 using CleanCommit.Instance;
 namespace CleanCommit.MIP
 {
-    class Variables
+   public class Variables
     {
 
 
@@ -45,9 +45,9 @@ namespace CleanCommit.MIP
 
 
         //helping
-        public Dictionary<string, int> UnitID2Index;
-        public Dictionary<string, int> SUnitID2Index;
-        public Dictionary<string, int> RUnitID2Index;
+        public Dictionary<Unit, int> UnitID2Index;
+        public Dictionary<StorageUnit, int> SUnitID2Index;
+        public Dictionary<ResGeneration, int> RUnitID2Index;
 
         protected GRBModel Model;
         public PowerSystem PS;
@@ -78,35 +78,41 @@ namespace CleanCommit.MIP
 
         private void CreateHelperDictionary()
         {
-            UnitID2Index = new Dictionary<string, int>();
+            UnitID2Index = new Dictionary<Unit, int>();
             for (int u = 0; u < totalUnits; u++)
             {
                 var unit = PS.Units[u];
-                UnitID2Index[unit.ID] = u; 
+                UnitID2Index[unit] = u; 
             }
-            SUnitID2Index = new Dictionary<string, int>();
+            SUnitID2Index = new Dictionary<StorageUnit, int>();
             for (int s = 0; s < totalStorageUnits; s++)
             {
                 var storageUnit = PS.StorageUnits[s];
-                SUnitID2Index[storageUnit.ID] = s;
+                SUnitID2Index[storageUnit] = s;
             }
-            RUnitID2Index = new Dictionary<string, int>();
+            RUnitID2Index = new Dictionary<ResGeneration, int>();
             for (int r = 0; r < totalRES; r++)
             {
                 var RESunit = PS.ResGenerations[r];
-                RUnitID2Index[RESunit.ID] = r;
+                RUnitID2Index[RESunit] = r;
             }
         }
 
         public void IntialiseVariables()
         {
-
+            Console.WriteLine("AddDispatchVariables");
             AddDispatchVariables();
+            Console.WriteLine("AddPieceWiseVariables");
             AddPieceWiseVariables();
+            Console.WriteLine("AddRESDispatch");
             AddRESDispatch();
+            Console.WriteLine("AddBinaryVariables");
             AddBinaryVariables();
+            Console.WriteLine("AddStorageVariables");
             AddStorageVariables();
+            Console.WriteLine("AddTransmissionVariables");
             AddTransmissionVariables();
+            Console.WriteLine("AddNodalVariables");
             AddNodalVariables();
             if (CC.TimeDependantStartUpCost)
             {
@@ -152,7 +158,7 @@ namespace CleanCommit.MIP
                 for (int r = 0; r < totalRES; r++)
                 {
                     var RES = PS.ResGenerations[r];
-                    RESDispatch[t, r] = Model.AddVar(0, RES.ResValues[t], 0.0, GRB.CONTINUOUS, "RES_" + t + "_" + r);
+                    RESDispatch[t, r] = Model.AddVar(0, RES.GetValue(t), 0.0, GRB.CONTINUOUS, "RES_" + t + "_" + r);
                 }
             }
         }

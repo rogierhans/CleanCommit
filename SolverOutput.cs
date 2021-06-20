@@ -10,7 +10,7 @@ using System.IO;
 using System.Diagnostics;
 namespace CleanCommit
 {
-    class SolverOutput
+    public class SolverOutput
     {
         public double time;
         public double GurobiCost;
@@ -22,12 +22,15 @@ namespace CleanCommit
         public bool[,] BinaryStartStatus;        // time * units
         public bool[,] BinaryStopStatus;         // time * units
         public double[,] Dispatch;           // time * units
+        public double[,] RDispatch;           // time * units
+        public double[,] SDispatch;           // time * units
+       // public double[,] Dispatch;           // time * units
         public double[,] Reserve;           // time * units
         public double[] TotalDispatch;           // time 
         public double[] TotalReserve;           // time 
         public GRBModel Model;
         public PowerSystem PS;
-        public Variables Variables;
+        private Variables Variables;
         public ConstraintConfiguration CC;
         public PiecewiseGeneration[] PiecewiseGeneration;
 
@@ -37,9 +40,16 @@ namespace CleanCommit
             this.objective = objective;
             time = runTime;
             Variables = variables;
-            SetBasicSolverOutput(variables);
             Model = model;
+            SetBasicSolverOutput(variables);
+
         }
+        int totalTime;
+        int totalUnits;
+        int totalNodes;
+        int totalLines;
+        int totalStorageUnits;
+        int totatRES;
         public double[,] NodalInjection; // node x time;
         public void SetBasicSolverOutput(Variables variables)
         {
@@ -50,14 +60,16 @@ namespace CleanCommit
 
             PS = variables.PS;
             CC = variables.CC;
-            var totalTime = CC.TotalTime;
-            var totalUnits = PS.Units.Count;
-            var totalNodes = PS.Nodes.Count;
-            var totalLines = PS.LinesAC.Count;
-            var totalStorageUnits = PS.StorageUnits.Count;
-            var totatRES = PS.ResGenerations.Count;
+            totalTime = CC.TotalTime;
+            totalUnits = PS.Units.Count;
+            totalNodes = PS.Nodes.Count;
+            totalLines = PS.LinesAC.Count;
+            totalStorageUnits = PS.StorageUnits.Count;
+            totatRES = PS.ResGenerations.Count;
 
             Dispatch = new double[totalTime, totalUnits];
+            RDispatch = new double[totalTime, totatRES];
+            SDispatch = new double[totalTime, totalStorageUnits];
             Reserve = new double[totalTime, totalUnits];
             TotalDispatch = new double[totalTime];
             TotalReserve = new double[totalTime];
@@ -87,6 +99,22 @@ namespace CleanCommit
                     TotalDispatch[t] += Dispatch[t, u];
                     Reserve[t, u] = variables.PotentialP[t, u].X - variables.P[t, u].X;
                     TotalReserve[t] += Reserve[t, u];
+                }
+            }
+
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int g = 0; g < totatRES; g++)
+                {
+                    RDispatch[t, g] = Variables.RESDispatch[t, g].X;
+                }
+            }
+
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int g = 0; g < totalStorageUnits; g++)
+                {
+                    SDispatch[t, g] = Variables.Discharge[t, g].X;
                 }
             }
             for (int n = 0; n < totalNodes; n++)
@@ -124,7 +152,8 @@ namespace CleanCommit
                 "Costs=" + GurobiCost,
                 "GCycle=" + GurobiCostCycle,
                 "GGen=" + GurobiCostGeneration,
-                "GLOL=" + GurobiCostLOL
+                "GLOL=" + GurobiCostLOL,
+                "TotalDemand=" + PS.Nodes.Sum(node => node.GetTotalDemand(CC.TotalTime))
             };
             lines.AddRange(MArrayToString("P", Variables.P));
             lines.AddRange(MArrayToString("Potential", Variables.PotentialP));
@@ -147,9 +176,9 @@ namespace CleanCommit
             if (!Directory.Exists(outputsubfolder))
                 Directory.CreateDirectory(outputsubfolder);
             File.WriteAllLines(outputsubfolder + donderdag + ".csv", lines);
-            Process myProcess = new Process();
-            Process.Start("notepad++.exe", outputsubfolder + donderdag + ".csv");
-            Console.ReadLine();
+            //Process myProcess = new Process();
+            //Process.Start("notepad++.exe", outputsubfolder + donderdag + ".csv");
+            //Console.ReadLine();
         }
 
         public List<string> MArrayToString(string identifier, GRBVar[,] input)
@@ -261,6 +290,14 @@ namespace CleanCommit
             }
             lines.Add("</" + identifier + ">");
             return lines;
+        }
+
+        public void Foto()
+        {
+
+
+            var test = new Print();
+            test.PrintUCED(PS, CC, Dispatch, SDispatch, RDispatch, "");
         }
     }
 }

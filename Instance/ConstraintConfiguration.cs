@@ -1,6 +1,6 @@
 ﻿namespace CleanCommit.Instance
 {
-    class ConstraintConfiguration
+    public class ConstraintConfiguration
     {
         public enum TransmissionType { Copperplate, TradeBased, VoltAngles, PTDF };
 
@@ -8,7 +8,7 @@
         public bool MinUpMinDown;
         public TransmissionType TransmissionMode;
 
-       // public bool Storage;
+        // public bool Storage;
         public bool TimeDependantStartUpCost;
         public bool Relax;
         public bool Tight;

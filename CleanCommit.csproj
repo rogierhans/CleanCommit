@@ -55,11 +55,9 @@
   <ItemGroup>
     <Compile Include="Experiment.cs" />
     <Compile Include="Instance\PTDFCalculator2.cs" />
+    <Compile Include="MIP\CallBackTrans.cs" />
     <Compile Include="MIP\Objective.cs" />
-    <Compile Include="NewFormulation2.cs" />
     <Compile Include="MIP\ReserveConstraint.cs" />
-    <Compile Include="MIP\TightGenerationConstraint.cs" />
-    <Compile Include="NewFormulation.cs" />
     <Compile Include="OldCode\ClusterMIP.cs" />
     <Compile Include="Instance\ConstraintConfiguration.cs" />
     <Compile Include="MIP\Constraint.cs" />

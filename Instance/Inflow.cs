@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CleanCommit.Instance
 {
-    class Inflow
+    public class Inflow
     {
         public int ID;
         public string StorageID;

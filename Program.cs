@@ -13,19 +13,55 @@ namespace CleanCommit
     {
         static void Main(string[] args)
         {
-            if (U.Hacks) {
-                Console.WriteLine("I hereby agree to run the code with HACKS");
-                Console.ReadLine();
-            }
+
+
+            //string filename = @"C:\Users\Rogier\Google Drive\Data\Github\GA10.uc";
+            ////string filename = @"C:\Users\Rogier\Google Drive\Data\Github\RCUC200.uc";
+            //var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, false, 1, false);
+            ////CC.Adequacy = true;
+            //Console.WriteLine(filename);
+            //CC.SetLimits(0, 24);
+            //PowerSystem PS = CleanCommit.IOUtils.GetPowerSystem(filename);
+            //Run();
+
+            //void Run()
+            //{
+            //    CleanCommit.TightSolver TS = new CleanCommit.TightSolver(PS, CC);
+            //    TS.ConfigureModel();
+            //    var output = TS.Solve(36000);
+            //}
+            //return;
 
 
 
             // var instanceNames = new string[] { , };
             var Experiment = new Experiment();
+
+           // new DirectoryInfo(@"C:\Users\4001184\Desktop\ZondagNacht").GetFiles().Select(x => x.FullName).ToList().ForEach(x => Experiment.Foto(x, x.Split('\\').Last().Split('.').First()));
+            //Experiment.Test0();
+           Experiment.TestGA10();
+            //Experiment.TestGA10();
+            //Experiment.TestGA102();
+           // Experiment.Dump();
+            // Experiment.TestGA10();
+
+            //
+            //return;
             //Experiment.Test3Node();
-            Experiment.TestGA10();
-            Console.ReadLine();
+            //
+            // Experiment.Foto("LPRamp");
+            //Experiment.Foto("11.01");
+            //Experiment.Foto("21.01");
+            //Experiment.Foto("31.01");
+            //Experiment.Foto("11.001");
+            //Experiment.Foto("21.001");
+            //Experiment.Foto("31.001");
+            //Experiment.Foto("11.001");
+            //Experiment.Foto("21.001");
+            //Experiment.Foto("31.001");
+            // Console.ReadLine();
             //Experiment.TestDispaSET();
+
             // Experiment.TestRCUC200() ;
             // Experiment.AGAINLEL();
             //Experiment.ProgramTest4();

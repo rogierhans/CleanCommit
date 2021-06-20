@@ -8,7 +8,7 @@ namespace CleanCommit.Instance
 {
 
 
-    class StorageUnit
+    public class StorageUnit
     {
         readonly public string ID;
         readonly public string Name;
@@ -18,7 +18,7 @@ namespace CleanCommit.Instance
         readonly public double ChargeEffiency;
         readonly public double DischargeEffiencyInverse;
         readonly private double DischargeEffiency;
-        readonly private List<double> Inflow;
+        readonly public List<double> Inflow;
 
         public StorageUnit(string iD, string name, double maxCharge, double maxDischarge, double maxEnergy, double chargeEffiency, double dischargeEffiency, List<double> inflow)
         {
@@ -40,7 +40,22 @@ namespace CleanCommit.Instance
             else
                 return 0;
         }
+        public string ToFile()
+        {
 
+            List<string> Properties = new List<string>();
+
+            Properties.Add(ID.ToString());
+            Properties.Add(Name);
+            Properties.Add(MaxCharge.ToString());
+            Properties.Add(MaxDischarge.ToString());
+            Properties.Add(MaxEnergy.ToString());
+            Properties.Add(ChargeEffiency.ToString());
+            Properties.Add(DischargeEffiency.ToString());
+
+            return String.Join(";", Properties);
+
+        }
 
     }
 }

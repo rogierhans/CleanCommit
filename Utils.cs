@@ -11,7 +11,6 @@ namespace CleanCommit
 {
     static class U
     {
-        public static bool Hacks = false;
         public static string DropBoxPath = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName;
         public static string InstanceFolder = DropBoxPath + @"\Data\NewInstances\";
         public static string LogFolder =  DropBoxPath + @"\Output\";

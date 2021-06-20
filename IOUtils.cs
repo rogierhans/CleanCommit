@@ -7,13 +7,13 @@ using Gurobi;
 using CleanCommit.Instance;
 namespace CleanCommit
 {
-    static class IOUtils
+public     static class IOUtils
     {
 
 
 
 
-        internal static PowerSystem GetPowerSystem(string filenameInstance)
+        public static PowerSystem GetPowerSystem(string filenameInstance)
         {
 
             var lines = U.ReadFile(filenameInstance);
@@ -22,30 +22,14 @@ namespace CleanCommit
             var inflows = ParseInflows(GetLineInterval("inflows", lines).Skip(1).ToList(), int.MaxValue);
             var storageUnits = ParseStorage(GetLineInterval("storage", lines).Skip(1).ToList(), inflows);
             var resGeneration = ParseRESgeneration(GetLineInterval("RESgeneration", lines).Skip(1).ToList(), int.MaxValue);
-            var nodes = ParseNodes(GetLineInterval("nodes", lines).Skip(1).ToList());
+            var nodes = ParseNodes(GetLineInterval("nodes", lines).Skip(1).ToList(),units,storageUnits,resGeneration);
             ParseDemand(nodes, GetLineInterval("demands", lines).Skip(1).ToList(), int.MaxValue);
             var transmissionLinesAC = ParseLines(GetLineInterval("transmissionAC", lines).Skip(1).ToList(), nodes);
             var transmissionLinesDC = ParseLinesDC(GetLineInterval("transmissionDC", lines).Skip(1).ToList(), nodes);
             var calc = new NewPTDF(transmissionLinesAC, nodes);
             double[,] ptdf = calc.GetPTDF();
-            return new PowerSystem(filenameInstance.Split('\\').Last(), units, nodes, transmissionLinesAC, transmissionLinesDC, storageUnits, resGeneration, ptdf);
-        }
-        internal static PowerSystem GetPowerSystem(string filenameInstance, int limit)
-        {
 
-            var lines = U.ReadFile(filenameInstance);
-
-            var units = ParseUnits(GetLineInterval("units", lines).Skip(1).ToList());
-            var inflows = ParseInflows(GetLineInterval("inflows", lines).Skip(1).ToList(), limit);
-            var storageUnits = ParseStorage(GetLineInterval("storage", lines).Skip(1).ToList(), inflows);
-            var resGeneration = ParseRESgeneration(GetLineInterval("RESgeneration", lines).Skip(1).ToList(), limit);
-            var nodes = ParseNodes(GetLineInterval("nodes", lines).Skip(1).ToList());
-            ParseDemand(nodes, GetLineInterval("demands", lines).Skip(1).ToList(), limit);
-            var transmissionLinesAC = ParseLines(GetLineInterval("transmissionAC", lines).Skip(1).ToList(), nodes);
-            var transmissionLinesDC = ParseLinesDC(GetLineInterval("transmissionDC", lines).Skip(1).ToList(), nodes);
-            var calc = new NewPTDF(transmissionLinesAC, nodes);
-
-            double[,] ptdf = calc.GetPTDF();
+            //new PTDFCalculator(transmissionLinesAC, nodes).GetPTDF();
             return new PowerSystem(filenameInstance.Split('\\').Last(), units, nodes, transmissionLinesAC, transmissionLinesDC, storageUnits, resGeneration, ptdf);
         }
 
@@ -97,6 +81,7 @@ namespace CleanCommit
                 double FSC = double.Parse(input[i++]);
                 double VSC = double.Parse(input[i++]);
                 double lambda = double.Parse(input[i++]);
+   
                 bool parseStartupCostAsFunction = FSC == -1 && VSC == -1 && lambda == -1;
 
                 //if the time dependant startup costs is defined as a function instead of a discretised step function,
@@ -112,7 +97,15 @@ namespace CleanCommit
                     int[] startInterval = input[i++].Split(':').Select(interval => int.Parse(interval)).ToArray();
                     unit.SetSUInterval(startCostInterval, startInterval);
                 }
+                //Console.WriteLine(string.Join("\t", unit.StartCostInterval));
+                //Console.ReadLine();
+                unit.PrintType = input[i++];
+                double cfixed = double.Parse(input[i++]);
+                double cvariable = double.Parse(input[i++]);
+                unit.CO2Fixed = cfixed;
+                unit.CO2Variable = cvariable;
                 units.Add(unit);
+
             }
 
             return units;
@@ -197,7 +190,7 @@ namespace CleanCommit
 
 
 
-        static public List<Node> ParseNodes(List<string> lines)
+        static public List<Node> ParseNodes(List<string> lines, List<Unit> UnitList, List<StorageUnit> StorageList, List<ResGeneration> RESList)
         {
             List<Node> nodes = new List<Node>();
 
@@ -208,9 +201,9 @@ namespace CleanCommit
                 string name = input[1];
 
                 // The ifstatement here is incase a region has zero units/storageunits
-                var unitIndices = GetValues(input[2]).Select(index => (index)).ToList();
-                var storageIndices = GetValues(input[3]).Select(index => (index)).ToList();
-                var RESIndices = GetValues(input[4]).Select(index => (index)).ToList();
+                var unitIndices = GetValues(input[2]).Select(index => UnitList.First(unit => unit.ID==index)).ToList();
+                var storageIndices = GetValues(input[3]).Select(index => StorageList.First(unit => unit.ID == index)).ToList();
+                var RESIndices = GetValues(input[4]).Select(index => RESList.First(unit => unit.ID == index)).ToList();
                 //var demands = lines[5].Split(';').Skip(1 + skipTime).Take(maxTime).Select(demand => double.Parse(demand) * U.DemandFactor).ToList();
                 //var upwardReserves = lines[6].Split(';').Skip(1).Take(maxTime).Select(reserve => double.Parse(reserve)).ToList();
                 //var downwardReserves = lines[7].Split(';').Skip(1).Take(maxTime).Select(reserve => double.Parse(reserve)).ToList();

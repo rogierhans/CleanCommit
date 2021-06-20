@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using CleanCommit.Instance;
 namespace CleanCommit
 {
-    class PiecewiseGeneration
+    public class PiecewiseGeneration
     {
         //piecewise function approximating the quadratic function
         //it is assumed the PieceWiseCost are monotonic increasing

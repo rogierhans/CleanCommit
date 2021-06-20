@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CleanCommit.Instance
 {
-    class ResGeneration
+    public class ResGeneration
     {
         public string Name;
         public string ID;
@@ -19,6 +19,10 @@ namespace CleanCommit.Instance
             //Console.WriteLine("*{0}*", name); Console.WriteLine("*{0}*", Name);
         }
 
+        public double GetValue(int t) {
+            return ResValues[t % ResValues.Count];
+        }
+
         public void CombineGeneration(ResGeneration res2)
         {
             if (res2.Name != Name || res2.ResValues.Count != ResValues.Count)
@@ -29,6 +33,11 @@ namespace CleanCommit.Instance
             {
                 ResValues[i] += res2.ResValues[i];
             }
+        }
+
+        public string ToFile()
+        {
+            return ID + ";" + Name + ";[" + String.Join(":", ResValues) + "]";
         }
     }
 }

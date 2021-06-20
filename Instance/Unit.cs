@@ -22,6 +22,8 @@ namespace CleanCommit.Instance
 
         //generation cost as a quadratic function f(p) = a + bp + c^2
         public double A, B, C;
+
+        public double CO2Fixed, CO2Variable;
         // public double  linearB;
 
         //piecewise function approximating the quadratic function
@@ -48,6 +50,8 @@ namespace CleanCommit.Instance
         public double VSC;
         public double Lambda;
 
+        public string PrintType;
+
         public Unit(string iD, string name, int count, double pMin, double pMax, double a, double b, double c, double rU, double rD, double sU, double sD, int minUpTime, int minDownTime, double[] startCostInterval, int[] startInterval, double fSC, double vSC, double lambda)
         {
             ID = iD;
@@ -57,6 +61,7 @@ namespace CleanCommit.Instance
             this.pMax = pMax;
             A = a;
             B = b;
+
             C = c;
             RU = (int)Math.Min(rU, pMax);
             RD = (int)Math.Min(rD, pMax);
@@ -112,6 +117,8 @@ namespace CleanCommit.Instance
         {
             A = a;
             B = b;
+            //Console.WriteLine(B);
+            //Console.ReadLine();
             C = c;
         }
 
@@ -188,13 +195,35 @@ namespace CleanCommit.Instance
             return StartCostInterval.Last();
         }
 
-        public void ReduceLimitHACK()
+        public string ToFile()
         {
-            pMin = 0;
-            if (!U.Hacks) throw new Exception("");
+            List<string> Properties = new List<string>
+            {
+                ID.ToString(),
+                Count.ToString(),
+                Math.Round(pMin, 5).ToString(),
+                Math.Round(pMax, 5).ToString(),
+                Math.Round(A, 5).ToString(),
+                Math.Round(B, 5).ToString(),
+                Math.Round(C, 5).ToString(),
+                Math.Round(RU, 5).ToString(),
+                Math.Round(RD, 5).ToString(),
+                Math.Max(pMin, Math.Round(SU, 5)).ToString(),
+                Math.Max(pMin, Math.Round(SD, 5)).ToString(),
+                Math.Max(minUpTime, 1).ToString(),
+                Math.Max(minDownTime, 1).ToString(),
+                "-1",
+               "-1",
+               "-1",
+                String.Join(":", StartCostInterval.Select(value => Math.Round(value, 5))),
+                String.Join(":", StartInterval),
+                PrintType,
+                Math.Round(CO2Fixed, 5).ToString(),
+                Math.Round(CO2Variable, 5).ToString()
+        };
+            return String.Join(";", Properties);
         }
 
-      
         public void GetInfo()
         {
             Console.WriteLine(Name);
