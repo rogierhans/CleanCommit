@@ -6,11 +6,15 @@ using System.Threading.Tasks;
 
 namespace CleanCommit.Instance
 {
+    [Serializable]
     public class ResGeneration
     {
+        public string Type = "None";
         public string Name;
         public string ID;
         public List<double> ResValues;
+
+        public ResGeneration() { }
         public ResGeneration(string id, List<double> resValues,string name)
         {
             ID = id;
@@ -23,17 +27,6 @@ namespace CleanCommit.Instance
             return ResValues[t % ResValues.Count];
         }
 
-        public void CombineGeneration(ResGeneration res2)
-        {
-            if (res2.Name != Name || res2.ResValues.Count != ResValues.Count)
-            {
-                throw new Exception("Go fuck yourself!" + res2.ResValues.Count + ResValues.Count + res2.Name + Name);
-            }
-            for (int i = 0; i < res2.ResValues.Count; i++)
-            {
-                ResValues[i] += res2.ResValues[i];
-            }
-        }
 
         public string ToFile()
         {

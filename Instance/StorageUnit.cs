@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace CleanCommit.Instance
 {
 
-
+    [Serializable]
     public class StorageUnit
     {
         readonly public string ID;
@@ -17,9 +17,10 @@ namespace CleanCommit.Instance
         readonly public double MaxEnergy;
         readonly public double ChargeEffiency;
         readonly public double DischargeEffiencyInverse;
-        readonly private double DischargeEffiency;
+        readonly public double DischargeEffiency;
         readonly public List<double> Inflow;
 
+        public StorageUnit() { }
         public StorageUnit(string iD, string name, double maxCharge, double maxDischarge, double maxEnergy, double chargeEffiency, double dischargeEffiency, List<double> inflow)
         {
             ID = iD;
@@ -35,10 +36,8 @@ namespace CleanCommit.Instance
 
         public double GetInflow(int t)
         {
-            if (t < Inflow.Count)
-                return Inflow[t];
-            else
-                return 0;
+            if (Inflow.Count == 0) return 0;
+            return Inflow[t % Inflow.Count];
         }
         public string ToFile()
         {

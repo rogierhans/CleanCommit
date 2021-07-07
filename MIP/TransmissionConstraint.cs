@@ -7,7 +7,7 @@ using Gurobi;
 using CleanCommit.Instance;
 namespace CleanCommit.MIP
 {
-    class TransmissionConstraint : Constraint
+    public class TransmissionConstraint : Constraint
     {
         public TransmissionConstraint(PowerSystem ps, ConstraintConfiguration cc, GRBModel model, Variables solver) : base(ps, cc, model, solver) { }
 

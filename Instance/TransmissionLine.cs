@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace CleanCommit.Instance
 {
+    [Serializable]
     public class TransmissionLineAC
     {
         public Node From;
@@ -16,6 +17,7 @@ namespace CleanCommit.Instance
 
         public double Susceptance;
 
+        public TransmissionLineAC() { }
         public TransmissionLineAC(Node from, Node to, double minCapacity, double maxCapacity,double susceptance) {
             From = from;
             To = to;
@@ -26,6 +28,7 @@ namespace CleanCommit.Instance
         }
 
     }
+    [Serializable]
     public class TransmissionLineDC
     {
         public Node From;
@@ -34,6 +37,7 @@ namespace CleanCommit.Instance
         public double MinCapacity;
         public double MaxCapacity;
 
+        public TransmissionLineDC() { }
         public TransmissionLineDC(Node from, Node to, double minCapacity, double maxCapacity)
         {
             From = from;

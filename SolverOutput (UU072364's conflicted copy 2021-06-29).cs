@@ -10,11 +10,14 @@ using System.IO;
 using System.Diagnostics;
 namespace CleanCommit
 {
-    [Serializable]
     public class SolverOutput
     {
         public double time;
-
+        public double GurobiCost;
+        public double GurobiCostGeneration;
+        public double GurobiCostCycle;
+        public double GurobiCostLOL;
+        public double GurobiCostLOR;
         public double TotalLossOfLoad = 0;
         public bool[,] BinaryCommitStatus;      // time * units
         public bool[,] BinaryStartStatus;       // time * units
@@ -24,55 +27,43 @@ namespace CleanCommit
         public double[,] SDispatch;             // time * units
         public double[,,] ThermalReserve;      // time x units x reservetype;
         public double[,,] HydroReserve;         // time x Sunits x reservetype;
-        public double[] TotalDispatch;          // time                                        // public double[] TotalReserve;           // time 
-        public double[,] NodalInjection; // node x time;
-
-        public double GurobiCost;
-        public double GurobiCostGeneration;
-        public double GurobiCostCycle;
-        public double GurobiCostLOL;
-        public double GurobiCostLOR;
-        public double Gap;
-        public int NumConstrs;
-        public int NumVars;
-        public int NumBinVars;
-        readonly int totalTime;
-        readonly int totalUnits;
-        readonly int totalNodes;
-        readonly  int totalLines;
-        readonly  int totalStorageUnits;
-        readonly  int totalRES;
-        readonly int totalReserveTypes;
-
-        [NonSerialized]
-        private PowerSystem PS;
-        [NonSerialized]
+                                                // public double[,] Dispatch;           // time * units
+                                                // public double[,,] Reserve;               // time * units
+        public double[] TotalDispatch;          // time 
+                                                // public double[] TotalReserve;           // time 
+        public GRBModel Model;
+        public PowerSystem PS;
         private Variables Variables;
-        [NonSerialized]
-        private ConstraintConfiguration CC;
-        [NonSerialized]
-        readonly private PiecewiseGeneration[] PiecewiseGeneration;
-        [NonSerialized]
-        readonly private Objective objective;
+        public ConstraintConfiguration CC;
+        public PiecewiseGeneration[] PiecewiseGeneration;
 
+        private Objective objective;
         public SolverOutput(Variables variables, Objective objective, GRBModel model, double runTime)
         {
             this.objective = objective;
             time = runTime;
             Variables = variables;
-            NumConstrs = model.NumConstrs;
-            NumVars = model.NumVars;
-            NumBinVars = model.NumBinVars;
-            CC = variables.CC;
+            Model = model;
+            SetBasicSolverOutput(variables);
 
+        }
+        int totalTime;
+        int totalUnits;
+        int totalNodes;
+        int totalLines;
+        int totalStorageUnits;
+        int totalRES;
+        int totalReserveTypes;
+        public double[,] NodalInjection; // node x time;
+        public void SetBasicSolverOutput(Variables variables)
+        {
             GurobiCost = objective.CurrentObjective.Value;
             GurobiCostGeneration = objective.GenerationCost.X;
             GurobiCostCycle = objective.CycleCost.X;
             GurobiCostLOL = objective.LOLCost.X;
             GurobiCostLOR = objective.LORCost.X;
-            Gap = (CC.Relax ? 0 : model.MIPGap);
             PS = variables.PS;
-
+            CC = variables.CC;
             totalTime = CC.TotalTime;
             totalUnits = PS.Units.Count;
             totalNodes = PS.Nodes.Count;
@@ -148,13 +139,11 @@ namespace CleanCommit
                     NodalInjection[n, t] = variables.NodalInjectionAC[n, t].X + variables.NodalInjectionDC[n, t].X;
                 }
             }
-
         }
+
 
         public void WriteToCSV(string folder, string donderdag)
         {
-
-
             List<string> lines = new List<string>
             {
                 "Name=" + PS.Name,
@@ -170,10 +159,10 @@ namespace CleanCommit
                 "Transmission=" + CC.TransmissionMode,
                 "Segments=" + CC.PiecewiseSegments,
                 "Time=" + time,
-                "MIPGap=" + Gap,
-                "Constraints=" + NumConstrs,
-                "Variables=" + NumVars,
-                "BinVariables=" + NumBinVars,
+                "MIPGap=" + (CC.Relax ? 0 : Model.MIPGap),
+                "Constraints=" + Model.NumConstrs,
+                "Variables=" + Model.NumVars,
+                "BinVariables=" + Model.NumBinVars,
                 "Costs=" + GurobiCost,
                 "GCycle=" + GurobiCostCycle,
                 "GGen=" + GurobiCostGeneration,

@@ -1,23 +1,22 @@
-﻿using System;
+﻿using CleanCommit.Instance;
+using Gurobi;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Gurobi;
-using CleanCommit.Instance;
 namespace CleanCommit.MIP
 {
-   public class Variables
+    public class Variables
     {
 
 
         public GRBVar[,] P; // time x units
-        public GRBVar[,] PotentialP; // time x units
+        public GRBVar[,,] ReserveThermal; // time x units x reservetype;
+        public GRBVar[,,] ReserveStorage; // time x Sunits x reservetype;
         public GRBVar[,,] Piecewise; // time x units x segments
-        public GRBVar[,] RESDispatch; // time x resunits
         public GRBVar[,] Commit; // time x units
         public GRBVar[,] Start; // time x units
         public GRBVar[,] Stop; // time x units
+        public GRBVar[,] RESDispatch; // time x resunits
         public GRBVar[,] TransmissionFlowAC; // lines x time
         public GRBVar[,] TransmissionFlowDC; // lines x time
         public GRBVar[,] NodeVoltAngle; // node x time
@@ -25,10 +24,12 @@ namespace CleanCommit.MIP
         public GRBVar[,] Discharge; // time x storageunits
         public GRBVar[,] Storage;  // time x storageunits
                                    //public GRBVar[,] Inflows; // time x inflow
-        public GRBVar[] LossOfReserve; // node x time
+        public GRBVar[] LossOfReserve; // time
         public GRBVar[,] NodalLossOfLoad; // node x time
         public GRBVar[,] NodalInjectionAC; // node x time
         public GRBVar[,] NodalInjectionDC; // node x time
+        public GRBVar[,] DemandResponse; // node x time
+        public GRBVar[,] RESIDUALDemand;
         //public GRBVar[,,] NodalRESGeneration;
         public List<GRBVar>[,] StartCostIntervall;
         public PiecewiseGeneration[] PiecewiseGeneration;
@@ -39,7 +40,7 @@ namespace CleanCommit.MIP
         protected int totalLinesAC;
         protected int totalLinesDC;
         protected int totalStorageUnits;
-        // protected int totalInflows;
+        protected int totalReserveTypes;
         protected int totalRES;
         protected int totalPiecewiseSegments;
 
@@ -68,7 +69,7 @@ namespace CleanCommit.MIP
             totalLinesAC = PS.LinesAC.Count;
             totalLinesDC = PS.LinesDC.Count;
             totalStorageUnits = PS.StorageUnits.Count;
-            // totalInflows = PS.Inflows.Count;
+            totalReserveTypes = CC.Reserves.Count;
             totalRES = PS.ResGenerations.Count;
             totalPiecewiseSegments = CC.PiecewiseSegments;
             PDTF = PS.PDTF;
@@ -82,7 +83,7 @@ namespace CleanCommit.MIP
             for (int u = 0; u < totalUnits; u++)
             {
                 var unit = PS.Units[u];
-                UnitID2Index[unit] = u; 
+                UnitID2Index[unit] = u;
             }
             SUnitID2Index = new Dictionary<StorageUnit, int>();
             for (int s = 0; s < totalStorageUnits; s++)
@@ -102,6 +103,7 @@ namespace CleanCommit.MIP
         {
             Console.WriteLine("AddDispatchVariables");
             AddDispatchVariables();
+            AddReserveVariables();
             Console.WriteLine("AddPieceWiseVariables");
             AddPieceWiseVariables();
             Console.WriteLine("AddRESDispatch");
@@ -124,11 +126,21 @@ namespace CleanCommit.MIP
         private void AddDispatchVariables()
         {
             P = new GRBVar[totalTime, PS.Units.Count];
-            PotentialP = new GRBVar[totalTime, PS.Units.Count];
             ApplyFunction((t, u) =>
             {
                 P[t, u] = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "P_" + u + "_" + t);
-                PotentialP[t, u] = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "P'_" + u + "_" + t);
+            });
+        }
+
+        private void AddReserveVariables()
+        {
+            ReserveThermal = new GRBVar[totalTime, PS.Units.Count, totalReserveTypes];
+            ApplyFunction((t, u) =>
+            {
+                for (int reserve = 0; reserve < totalReserveTypes; reserve++)
+                {
+                    ReserveThermal[t, u, reserve] = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "Reserve_" + u + "_" + t + "_" + reserve);
+                }
             });
         }
 
@@ -194,19 +206,24 @@ namespace CleanCommit.MIP
         private void AddNodalVariables()
         {
             NodalLossOfLoad = new GRBVar[totalNodes, totalTime];
+            DemandResponse = new GRBVar[totalNodes, totalTime];
             LossOfReserve = new GRBVar[totalTime];
             NodalInjectionAC = new GRBVar[totalNodes, totalTime];
             NodalInjectionDC = new GRBVar[totalNodes, totalTime];
+            RESIDUALDemand = new GRBVar[totalNodes, totalTime];
             for (int t = 0; t < totalTime; t++)
             {
                 LossOfReserve[t] = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalLoR_" + t);
                 for (int n = 0; n < totalNodes; n++)
                 {
                     var node = PS.Nodes[n];
-                    NodalLossOfLoad[n, t] = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalLoL_" + n + "_" + t);
-
+                    RESIDUALDemand[n, t] = Model.AddVar(0, node.NodalDemand(t), 0.0, GRB.CONTINUOUS, "ResidualDemand" + n + "_" + t);
+                    NodalLossOfLoad[n, t] = Model.AddVar(0, node.NodalDemand(t), 0.0, GRB.CONTINUOUS, "NodalLoL_" + n + "_" + t);
+                    DemandResponse[n, t] = Model.AddVar(0, node.DemandResonsePotential, 0.0, GRB.CONTINUOUS, "DemandResponse" + n + "_" + t);
                     NodalInjectionAC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionAC_" + t);
                     NodalInjectionDC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionDC_" + t);
+
+                    Model.AddConstr(RESIDUALDemand[n, t] == (node.NodalDemand(t) - DemandResponse[n, t] - NodalLossOfLoad[n, t]), "ResidualLoad_"+ n +"_" + t);
                 }
             }
         }
@@ -244,7 +261,7 @@ namespace CleanCommit.MIP
             Storage = new GRBVar[totalTime, totalStorageUnits];
             Charge = new GRBVar[totalTime, totalStorageUnits];
             Discharge = new GRBVar[totalTime, totalStorageUnits];
-
+            ReserveStorage = new GRBVar[totalTime, totalStorageUnits, totalReserveTypes];
             for (int t = 0; t < totalTime; t++)
             {
                 for (int s = 0; s < totalStorageUnits; s++)
@@ -253,8 +270,13 @@ namespace CleanCommit.MIP
                     Storage[t, s] = Model.AddVar(0, StorageUnit.MaxEnergy, 0.0, GRB.CONTINUOUS, "Storage_" + t + "_" + s);
                     Charge[t, s] = Model.AddVar(0, StorageUnit.MaxCharge, 0.0, GRB.CONTINUOUS, "Charge_" + t + "_" + s);
                     Discharge[t, s] = Model.AddVar(0, StorageUnit.MaxDischarge, 0.0, GRB.CONTINUOUS, "Discharge_" + t + "_" + s);
+                    for (int reserve = 0; reserve < totalReserveTypes; reserve++)
+                    {
+                        ReserveStorage[t, s, reserve] = Model.AddVar(0, StorageUnit.MaxDischarge, 0.0, GRB.CONTINUOUS, "Discharge_" + t + "_" + s);
+                    }
                 }
             }
+
         }
         public void ApplyFunction(Action<int, int> action)
         {

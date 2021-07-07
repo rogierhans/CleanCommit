@@ -13,7 +13,7 @@ namespace CleanCommit
     {
         static void Main(string[] args)
         {
-           // Console.WriteLine("UserName: {0}", Environment.UserName);return;
+
 
             //string filename = @"C:\Users\Rogier\Google Drive\Data\Github\GA10.uc";
             ////string filename = @"C:\Users\Rogier\Google Drive\Data\Github\RCUC200.uc";
@@ -37,12 +37,10 @@ namespace CleanCommit
             // var instanceNames = new string[] { , };
             var Experiment = new Experiment();
 
-            // new DirectoryInfo(@"C:\Users\4001184\Desktop\ZondagNacht").GetFiles().Select(x => x.FullName).ToList().ForEach(x => Experiment.Foto(x, x.Split('\\').Last().Split('.').First()));
+           // new DirectoryInfo(@"C:\Users\4001184\Desktop\ZondagNacht").GetFiles().Select(x => x.FullName).ToList().ForEach(x => Experiment.Foto(x, x.Split('\\').Last().Split('.').First()));
             //Experiment.Test0();
-            Experiment.Wrapper();
-            //Experiment.YearTests();
-           // Experiment.Test();
-         //  Experiment.TestGA10();
+          // Experiment.Wrapper();
+            Experiment.TestGA10();
             //Experiment.TestGA102();
            // Experiment.Dump();
             // Experiment.TestGA10();

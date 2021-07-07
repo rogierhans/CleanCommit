@@ -8,7 +8,7 @@ using CleanCommit.Instance;
 
 namespace CleanCommit.MIP
 {
-    abstract class Constraint
+    public  abstract class Constraint
     {
         protected int totalNodes;
         protected int totalTime;

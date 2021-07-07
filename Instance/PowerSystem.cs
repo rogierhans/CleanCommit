@@ -8,6 +8,7 @@ using Gurobi;
 
 namespace CleanCommit.Instance
 {
+    [Serializable]
     public class PowerSystem
     {
 
@@ -18,14 +19,15 @@ namespace CleanCommit.Instance
         public List<TransmissionLineAC> LinesAC;
         public List<TransmissionLineDC> LinesDC;
         public List<StorageUnit> StorageUnits;
-        //public List<Inflow> Inflows;
         public double[,] PDTF;
         public double VOLL = 10000;
         public double VOLR = 1000;
         public List<double> Reserves;
-        private double RatioReserveDemand = 0;//0.01;
-        //public ConstraintConfiguration ConstraintConfiguration;
+       // private double RatioReserveDemand = 0;//0.01;
 
+        public double DRSCost = 300;
+
+        public PowerSystem() { }
         public PowerSystem(string name, List<Unit> units, List<Node> nodes, List<TransmissionLineAC> linesAC, List<TransmissionLineDC> linesDC, List<StorageUnit> storageUnits, List<ResGeneration> resgenerations, double[,] pDTF)
         {
             Name = name;
@@ -36,7 +38,7 @@ namespace CleanCommit.Instance
             LinesDC = linesDC;
             StorageUnits = storageUnits;
             PDTF = pDTF;
-            Reserves = GetTotalDemand().Select(x => x * RatioReserveDemand).ToList(); 
+         //   Reserves = GetTotalDemand().Select(x => x * RatioReserveDemand).ToList(); 
         }
 
 
@@ -58,27 +60,6 @@ namespace CleanCommit.Instance
             return Reserves[t % Reserves.Count()];
         }
 
-        //public void UnCluster()
-        //{
-        //    List<Unit> allNewUnits = new List<Unit>();
-        //    int ID = 0;
-        //    foreach (var node in Nodes)
-        //    {
-        //        var unitNewIndices = new List<int>();
-        //        foreach (var unitIndex in node.UnitsIndex)
-        //        {
-        //            var unit = Units[unitIndex];
-        //            int count = unit.Count;
-        //            var newUnits = unit.CreateCopies(ID, count);
-        //            allNewUnits.AddRange(newUnits);
-        //            unitNewIndices.AddRange(newUnits.Select(u => u.ID));
-        //            ID = ID + count;
-        //        }
-        //        node.UnitsIndex = unitNewIndices;
-        //    }
-        //    Units = allNewUnits;
-        //}
-
         public void PeturbDemand(double factor)
         {
             Random Rng = new Random();
@@ -93,7 +74,7 @@ namespace CleanCommit.Instance
 
         public override string ToString()
         {
-            return Name.Split('.').First() + RatioReserveDemand;//+ ConstraintConfiguration;
+            return Name.Split('.').First();//+ ConstraintConfiguration;
         }
 
         public string NameOK()
@@ -105,36 +86,7 @@ namespace CleanCommit.Instance
             Units.ForEach(unit => unit.GetInfo());
         }
 
-        //public void Test(ConstraintConfiguration ConstraintConfiguration)
-        //{
-        //    for (int t = 0; t < ConstraintConfiguration.totalTime; t++)
-        //    {
-        //        double totalDemand = 0;
-        //        double totalRes = 0;
-        //        double totalGenerationCap = 0;
-        //        for (int n = 0; n < Nodes.Count; n++)
-        //        {
-
-        //            double demandAtNode = 0;
-        //            double resAtNode = 0;
-        //            double generationAtNode = 0;
-
-        //            demandAtNode += Nodes[n].NodalDemand(t);
-        //            resAtNode += Nodes[n].RESindex.Select(id => ResGenerations[id].ResValues[t]).Sum();// .ResGeneration.Select(res => res.ResValues[t]).Sum();
-        //            foreach (var unitIndex in Nodes[n].UnitsIndex)
-        //            {
-        //                var unit = Units[unitIndex];
-        //                generationAtNode += unit.PMax * unit.Count;
-        //            }
-        //            totalDemand += demandAtNode;
-        //            totalRes += resAtNode;
-        //            totalGenerationCap += generationAtNode;
-        //            //Console.WriteLine("{0}\t {1} \t  {2} \t {3} \t {4}", demandAtNode, resAtNode, generationAtNode, (demandAtNode - (resAtNode + generationAtNode)), Nodes[n].Name);
-        //        }
-        //        Console.WriteLine("Demand: {0}\t Res:{1} \t  Generation{2} \t Rest{3}", totalDemand, totalRes, totalGenerationCap, (totalDemand - (totalRes + totalGenerationCap)));
-        //    }
-
-        //}
+     
         public PowerSystem GetPowerSystemAtNode(Node node, List<double> nodalInjection, List<double> nodalReserve)
         {
             var newNode  = node.CopyWithExport(nodalInjection);

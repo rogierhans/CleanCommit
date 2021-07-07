@@ -1,14 +1,28 @@
-﻿namespace CleanCommit.Instance
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Gurobi;
+using CleanCommit.MIP;
+using CleanCommit.Instance;
+using System.IO;
+using System.Diagnostics;
+
+namespace CleanCommit.Instance
 {
+
+    [Serializable]
     public class ConstraintConfiguration
     {
         public enum TransmissionType { Copperplate, TradeBased, VoltAngles, PTDF };
+
+
 
         public bool RampingLimits;
         public bool MinUpMinDown;
         public TransmissionType TransmissionMode;
 
-        // public bool Storage;
         public bool TimeDependantStartUpCost;
         public bool Relax;
         public bool Tight;
@@ -16,11 +30,10 @@
         public int TotalTime;
         public int SkipTime;
         public int PiecewiseSegments;
+        public List<Reserve> Reserves = new List<Reserve>();
         public bool Adequacy = false;
-        public double DemandMultiplier = 1;
-        public double FistNodeM = 1;
-
-        public bool SuperTight = false;
+      //  public double DemandMultiplier = 1;
+        public ConstraintConfiguration() { }
         public ConstraintConfiguration(bool rampingLimits, bool minUpMinDown, TransmissionType transmissionMode, bool timeDependantStartUpCost, bool relax, int pwsegments, bool tight)
         {
             RampingLimits = rampingLimits;
@@ -38,6 +51,9 @@
             this.TotalTime = totalTime;
         }
 
+
+
+
         public void AdecuacyTest()
         {
             Adequacy = true;
@@ -45,7 +61,7 @@
 
         public override string ToString()
         {
-            return Str(Relax) + Str(RampingLimits) + Str(MinUpMinDown) + Str(TimeDependantStartUpCost) + TransmissionMode + Str(Tight) + PiecewiseSegments + TotalTime;
+            return Str(Relax) + Str(RampingLimits) + Str(MinUpMinDown) + Str(TimeDependantStartUpCost) + TransmissionMode + Str(Tight) +  TotalTime + "_" + Reserves.Count();
         }
 
 

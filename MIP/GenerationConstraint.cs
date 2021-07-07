@@ -88,16 +88,14 @@ namespace CleanCommit.MIP
             {
                 Model.AddConstr(Variable.P[t, u] <= maxGeneration, "");
             }
-            Model.AddConstr(Variable.P[t, u] <= Variable.PotentialP[t, u], "");
-            Model.AddConstr(Variable.PotentialP[t, u] <= maxGeneration, "");
+            Model.AddConstr(Variable.P[t, u] <= maxGeneration, "");
 
         }
         private void AddNormalConstraint(int t, int u)
         {
             Unit unit = PS.Units[u];
             GRBLinExpr maxGeneration = (unit.pMax - unit.pMin) * Variable.Commit[t, u];
-            Model.AddConstr(Variable.P[t, u] <= Variable.PotentialP[t, u], "");
-            Model.AddConstr(Variable.PotentialP[t, u] <= maxGeneration, "");
+            Model.AddConstr(Variable.P[t, u] <= maxGeneration, "");
         }
     }
 }

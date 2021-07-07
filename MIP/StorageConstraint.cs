@@ -31,7 +31,7 @@ namespace CleanCommit.MIP
                     var inflowValue = StorageUnit.GetInflow(t);
                    // Console.WriteLine(inflowValue);
                     var inflowVar = Model.AddVar(0, inflowValue, 0.0, GRB.CONTINUOUS, "auxiliaryVariableStorageInflow_"+t+"_"+s);
-                    var init = StorageUnit.MaxEnergy / 2;
+                    var init = 0;// StorageUnit.MaxEnergy / 2;
                     if (t == 0)
                     {
                         StorageLevelConstaints[t, s] = Model.AddConstr(Variable.Storage[0, s] == Variable.Charge[0, s] * StorageUnit.ChargeEffiency - Variable.Discharge[0, s] * StorageUnit.DischargeEffiencyInverse + inflowVar + init, "InitalStorageLevel" + s);

@@ -27,7 +27,7 @@ namespace CleanCommit
             //model.Set("LogFile", @"C:\Users\4001184\Desktop\Glog.txt");
             // model.Parameters.Threads = 1;
             model.Set("DisplayInterval", "1");
-            model.Set("MIPGap", "0.001");
+            model.Set("MIPGap", "0.00001");
             model.Set(GRB.IntParam.LogToConsole, 0);
             //model.Set("Method", "1");
             //model.Set("IntFeasTol", "0.000000001");
@@ -66,6 +66,8 @@ namespace CleanCommit
         }
 
         PowerBalanceContraint PBC;
+        TransmissionConstraint TC;
+
         public virtual void AddConstraints()
         {
             var GenerationConstraint = new GenerationConstraint(PS, CC, model, Variables);
@@ -74,8 +76,8 @@ namespace CleanCommit
             RampingConstraint.AddConstraint();
             var PiecewiseConstraint = new PiecewiseConstraint(PS, CC, model, Variables);
             PiecewiseConstraint.AddConstraint();
-            var TransmissionConstraint = new TransmissionConstraint(PS, CC, model, Variables);
-            TransmissionConstraint.AddConstraint();
+            TC = new TransmissionConstraint(PS, CC, model, Variables);
+            TC.AddConstraint();
             PBC = new PowerBalanceContraint(PS, CC, model, Variables);
             PBC.AddConstraint();
             var LogicConstraint = new LogicConstraint(PS, CC, model, Variables);
@@ -176,24 +178,16 @@ namespace CleanCommit
             return new SolverOutput(Variables, Objective, model, model.Runtime);
         }
 
-        public SolverOutput GetTransmissionOutput(int TimeLimit)
+        public Solution NewSolve(int TimeLimit, int v)
         {
-            model.Parameters.LazyConstraints = 1;
-
-            //string filename = @"C:\Users\4001184\Desktop\gurobi.lp";
-            //model.Write(filename);
-            //Process myProcess = new Process();
-            //Process.Start("notepad++.exe", filename);
-            //Console.ReadLine();
             model.Parameters.TimeLimit = TimeLimit;
-
-            model.SetCallback(new CallBackTrans(PS, CC, model, Variables, PBC.NodalResidualDemand, PBC.Boven));
+            model.Parameters.Method = v;
             model.Optimize();
-            //  saved.Print();
-            //new Output(this);
-
-            return new SolverOutput(Variables, Objective, model, model.Runtime);
+            return new Solution(model, Objective, Variables, PS, CC,TC,PBC);
         }
+
+
+
 
         //  public SolverOutput TransFix(int TimeLimit) { }
     }

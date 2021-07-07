@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CleanCommit.MIP;
 using CleanCommit.Instance;
+using System.Diagnostics;
 using System.IO;
 namespace CleanCommit
 {
@@ -15,8 +16,9 @@ namespace CleanCommit
         public static string[] RedoInstances = new string[] { "RCUC200.uc", "RTS26.uc", "FERC934.uc", "CA610.uc" };
         public static string[] FastInstances = new string[] { "GA10.uc", "TAI38.uc", "A110.uc", "DispaSET.uc", "RTS26.uc" };
 
-        public static string[] TYDNPInstances = new string[] { "DE_2030", "GA_2030", "NT_2030", "DE_2040", "GA_2040", "NT_2040" };
-
+        public static string[] TYDNPInstances = new string[] { "DE_2040", "GA_2040", "NT_2040", "GA_2030", "NT_2030", "DE_2030" };
+         //public static string[] TYDNPInstances = new string[] { "DE_2030"};
+       // public static string[] TYDNPInstances = new string[] { "GA_2030", "NT_2030", "DE_2040", "GA_2040", "NT_2040" };
         public void Foto(string filename, string nameOutput)
         {
 
@@ -80,31 +82,117 @@ namespace CleanCommit
             }
             return newLines;
         }
-        public void TestGA10()
+        public void YearTests()
         {
             foreach (var instance in TYDNPInstances)
             {
-                string filename = @"C:\Users\4001184\Google Drive\Data\Github\"+instance +".uc";
+                string filename = @"C:\Users\" + Environment.UserName + @"\Google Drive\Data\Github\" + instance + ".uc";
                 //string filename = @"C:\Users\Rogier\Google Drive\Data\Github\RCUC200.uc";
-                var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false);
-                //  CC.Adequacy = true;
+                var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false);
+                CC.Adequacy = true;
                 Console.WriteLine(filename);
-                CC.SetLimits(0, 24);
+                CC.SetLimits(0, 24 * 30);
+
+                //CC.Reserves.Add(new Reserve(0.01, 0, 1.0 / 12, 0, 0));
+                //CC.Reserves.Add(new Reserve(0, 3000, 1.0 / 6, 0, 0));
+                //CC.Reserves.Add(new Reserve(0, 0, 1, 0.12, 0.10));
+                PowerSystem PS = IOUtils.GetPowerSystem(filename);
+
+
+                //string xmlFilename = @"C:\Users\" + Environment.UserName + @"\Desktop\" + instance + ".bin";
+                //BinarySerialization.WriteToBinaryFile<PowerSystem>(xmlFilename, PS);
+                //return;
+
+                Run();
+                void Run()
+                {
+                    TightSolver TS = new TightSolver(PS, CC);
+                    TS.ConfigureModel();
+                    var output = TS.NewSolve(36000, 1);
+                    //Console.ReadLine();
+                    List<object> cells = new List<object>() { output.GurobiCost, output.GurobiCostLOL, output.GurobiCostLOR, output.GurobiCostGeneration, output.GurobiCostCycle };
+                    var line = string.Join("\t", cells);
+                    File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\log.txt", line + "\n");
+                    //output.WriteToCSV(@"C:\Users\" + Environment.UserName + @"\Desktop\DesktopOutput\", instance);
+                    string binFilename = @"C:\Users\" + Environment.UserName + @"\Desktop\" + instance + ".bin";
+                    BinarySerialization.WriteToBinaryFile<Solution>(binFilename, output);
+
+                    // Then in some other function.
+                    var otherSolverOutput = BinarySerialization.ReadFromBinaryFile<Solution>(binFilename);
+                    TS.Kill();
+                }
+
+            }
+        }
+
+ 
+
+        public void Wrapper()
+        {
+
+            int timehorizon = 8760;
+            var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false);
+            // CC.Adequacy = true;
+            CC.SetLimits(0, timehorizon);
+            CC.Reserves.Add(new Reserve(0.01, 0, 1.0 / 12, 0, 0));
+            CC.Reserves.Add(new Reserve(0, 3000, 1.0 / 6, 0, 0));
+            CC.Reserves.Add(new Reserve(0, 0, 1, 0.12, 0.10));
+            Expriment8(CC,"ComplexYear");
+
+
+            //CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, false, 1, false);
+            //CC.Adequacy = true;
+            //CC.SetLimits(0, 200);
+            //CC.Reserves.Add(new Reserve(0.01, 0, 1.0 / 12, 0, 0));
+            //CC.Reserves.Add(new Reserve(0, 3000, 1.0 / 6, 0, 0));
+            //CC.Reserves.Add(new Reserve(0, 0, 1, 0.12, 0.10));
+            //Expriment8(CC);
+
+            //CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false);
+            //CC.Adequacy = true;
+            ////CC.Reserves.Add(new Reserve(0.01, 0, 1.0 / 12, 0, 0));
+            ////CC.Reserves.Add(new Reserve(0, 3000, 1.0 / 6, 0, 0));
+            ////CC.Reserves.Add(new Reserve(0, 0, 1, 0.12, 0.10));
+            //CC.SetLimits(0, timehorizon);
+            //Expriment8(CC,"Simple");
+        }
+        public void Expriment8(ConstraintConfiguration CC, string extra)
+        {
+            foreach (var instance in TYDNPInstances)
+            {
+                string filename = @"C:\Users\4001184\Google Drive\Data\Github\" + instance + ".uc";
+                //string filename = @"C:\Users\Rogier\Google Drive\Data\Github\RCUC200.uc";
+
                 PowerSystem PS = IOUtils.GetPowerSystem(filename);
                 Run();
                 void Run()
                 {
                     TightSolver TS = new TightSolver(PS, CC);
                     TS.ConfigureModel();
-                    var output = TS.Solve(36000, 1);
+                    var output = TS.NewSolve(36000, 1);
                     //Console.ReadLine();
-                    output.WriteToCSV(@"C:\Users\4001184\Desktop\DesktopOutput\", instance);
+                    List<object> cells = new List<object>() {
+                        PS.ToString(),
+                        CC.ToString(),
+                        output.GurobiCost,
+                        output.GurobiCostLOL,
+                        output.GurobiCostLOR,
+                        output.GurobiCostGeneration,
+                        output.GurobiCostCycle,
+                        output.ComputationTime };
+                    var line = string.Join("\t", cells);
+                    File.AppendAllText(@"C:\Users\4001184\Desktop\log.txt", line + "\n");
+                    output.ToCSV(@"C:\Users\4001184\Desktop\UC\" + PS.Name.Split('.').First() +"_" + extra+ ".csv");
+                    output.ToBin(@"C:\Users\4001184\Desktop\UC\" + PS.Name.Split('.').First() + "_" + extra + ".bin");
+                    TS.Kill();
                 }
 
             }
-
-
         }
+
+
+
+
 
         public void Test0()
         {
@@ -137,7 +225,7 @@ namespace CleanCommit
             var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, true);
             //CC.Adecuacy = true;
             Console.WriteLine(filename);
-            CC.SetLimits(0, 24);
+            CC.SetLimits(0, 672);
             PowerSystem PS = IOUtils.GetPowerSystem(filename);
             var dict = new Dictionary<string, HashSet<double>>();
             foreach (var unit in PS.Units)
@@ -153,40 +241,26 @@ namespace CleanCommit
             PS.Dump();
 
         }
-        public void TestGA102()
+        public void Test()
         {
-            foreach (double fraction in new List<double> { 1.01, 1.005, 1.001 })
+
+            //  string filename = @"C:\Users\4001184\Google Drive\Data\Github\ACDCESMSmall.uc";
+            string filename = @"C:\Users\Rogier\Google Drive\Data\Github\FERC923.uc";
+            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false);
+            CC.Adequacy = true;
+            Console.WriteLine(filename);
+            CC.SetLimits(0, 24);
+            PowerSystem PS = IOUtils.GetPowerSystem(filename);
+            Run();
+
+            void Run()
             {
-                string filename = @"C:\Users\4001184\Google Drive\Data\Github\ACDCESMSmall.uc";
-                //string filename = @"C:\Users\Rogier\Google Drive\Data\Github\RCUC200.uc";
-                var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, true);
-                //CC.Adecuacy = true;
-                Console.WriteLine(filename);
-                CC.SetLimits(0, 72);
-                PowerSystem PS = IOUtils.GetPowerSystem(filename);
-                //  var newPS = PS.GetPowerSystemAtNode(PS.Nodes[1], new double[1000].ToList(), new double[1000].ToList());
-
-
-                //PowerSystem.Units.ForEach(unit => unit.ReduceLimitHACK());
-                //double multiplier = LossOfLoadDemandIncrement(PowerSystem, CC);
-                //CC.DemandMultiplier = multiplier;
-                //CC.Adequacy =true;
-                // Transmission();
-                Run();
-
-                void Run()
-                {
-                    TightSolver TS = new TightSolver(PS, CC);
-                    //TS.ConfigureModel();
-                    // TS.SolveMin(36000, fraction);
-                    //TS.Kill();
-
-                    //TS = new TightSolver(PS, CC);
-                    TS.ConfigureModel();
-                    TS.SolveMax(36000, fraction);
-                    TS.Kill();
-                }
+                TightSolver TS = new TightSolver(PS, CC);
+                TS.ConfigureModel();
+                TS.Solve(36000, 1);
+                TS.Kill();
             }
+
         }
         public void TestRCUC200()
         {
@@ -239,42 +313,6 @@ namespace CleanCommit
                 File.AppendAllText(@"C:\Users\Rogier\Desktop\outputLP.txt", line);
                 //Console.ReadLine();
             }
-        }
-
-        public static double LossOfLoadDemandIncrement(PowerSystem PS, ConstraintConfiguration CC)
-        {
-            var copyCC = CC.Copy();
-            Console.WriteLine(CC.ToString());
-            Console.WriteLine(copyCC.ToString());
-
-            copyCC.Relax = true;
-            copyCC.AdecuacyTest();
-            double demandMultiplier = 1;
-            double delta = 1;
-            for (int i = 0; i < 20; i++)
-            {
-                copyCC.DemandMultiplier = demandMultiplier;
-                TightSolver TS = new TightSolver(PS, copyCC);
-                TS.ConfigureModel();
-                var output = TS.SolveMin(600, 0);
-                var LOL = output.TotalLossOfLoad;
-                var totalDemand = PS.TotalDemand();
-                Console.WriteLine(totalDemand);
-                if ((LOL / totalDemand) < 0.001)
-                {
-                    demandMultiplier += delta;
-                    delta = delta / 2;
-                }
-                else
-                {
-                    demandMultiplier -= delta;
-                    delta = delta / 2;
-                }
-                Console.WriteLine((LOL / totalDemand));
-                Console.WriteLine(demandMultiplier);
-                TS.Kill();
-            }
-            return demandMultiplier;
         }
     }
 }

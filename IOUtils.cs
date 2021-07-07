@@ -123,8 +123,11 @@ public     static class IOUtils
                 var ID = (output[0]);
                 string name = output[1];
                 List<double> values = GetValues(output[2]).Select(cell => double.Parse(cell)).Take(timeStepLimit).ToList();
-
-                resgen.Add(new ResGeneration(ID, values, name));
+                var res = new ResGeneration(ID, values, name)
+                {
+                    Type = output[3]
+                };
+                resgen.Add(res);
             }
             return resgen;
         }
@@ -204,11 +207,13 @@ public     static class IOUtils
                 var unitIndices = GetValues(input[2]).Select(index => UnitList.First(unit => unit.ID==index)).ToList();
                 var storageIndices = GetValues(input[3]).Select(index => StorageList.First(unit => unit.ID == index)).ToList();
                 var RESIndices = GetValues(input[4]).Select(index => RESList.First(unit => unit.ID == index)).ToList();
+                var demandResponse = double.Parse(input[5]);
                 //var demands = lines[5].Split(';').Skip(1 + skipTime).Take(maxTime).Select(demand => double.Parse(demand) * U.DemandFactor).ToList();
                 //var upwardReserves = lines[6].Split(';').Skip(1).Take(maxTime).Select(reserve => double.Parse(reserve)).ToList();
                 //var downwardReserves = lines[7].Split(';').Skip(1).Take(maxTime).Select(reserve => double.Parse(reserve)).ToList();
 
                 var node = new Node(id, name, unitIndices, storageIndices, RESIndices);
+                node.DemandResonsePotential = 0;// demandResponse;
                 //node.PrintInfo();
                 nodes.Add(node);
             }

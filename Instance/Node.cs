@@ -8,7 +8,7 @@ using System.IO;
 namespace CleanCommit.Instance
 {
 
-
+    [Serializable]
     public class Node
     {
         public int ID;
@@ -19,6 +19,7 @@ namespace CleanCommit.Instance
         public List<StorageUnit> StorageUnits;
         public List<ResGeneration> RES;
         public List<double> Demand;
+        public double DemandResonsePotential;
         //public List<double> SpinningReservesUP;
         //public List<double> SpinningReservesDown;
 
@@ -40,7 +41,7 @@ namespace CleanCommit.Instance
             //Properties.Add("</node>");
             return String.Join(";", Properties);
         }
-
+        public Node() { }
         public Node(int iD, string name, List<Unit> UnitList, List<StorageUnit> StorageList, List<ResGeneration> RESList)
         {
             ID = iD;

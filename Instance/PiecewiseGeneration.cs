@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CleanCommit.Instance;
 namespace CleanCommit
 {
+    [Serializable]
     public class PiecewiseGeneration
     {
         //piecewise function approximating the quadratic function
@@ -17,6 +18,7 @@ namespace CleanCommit
         public double[] PiecewiseStartUpLimit;
         public double[] PiecewiseShutDownLimit;
         public Unit Unit;
+        public PiecewiseGeneration() { }
         public PiecewiseGeneration(Unit unit, int pieces)
         {
             Unit = unit;

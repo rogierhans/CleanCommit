@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace CleanCommit.Instance
 {
+    [Serializable]
     public class Unit
     {
         //unique number
@@ -51,7 +52,7 @@ namespace CleanCommit.Instance
         public double Lambda;
 
         public string PrintType;
-
+        public  Unit() { }
         public Unit(string iD, string name, int count, double pMin, double pMax, double a, double b, double c, double rU, double rD, double sU, double sD, int minUpTime, int minDownTime, double[] startCostInterval, int[] startInterval, double fSC, double vSC, double lambda)
         {
             ID = iD;

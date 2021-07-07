@@ -176,7 +176,7 @@ namespace CleanCommit.MIP
                 for (int n = 0; n < totalNodes; n++)
                 {
                     if (CC.Adequacy)
-                        lolCost += Vars.NodalLossOfLoad[n, t] * 10;
+                        lolCost += Vars.NodalLossOfLoad[n, t] ;
                     else
                         lolCost += Vars.NodalLossOfLoad[n, t] * PS.VOLL;
 
@@ -192,7 +192,7 @@ namespace CleanCommit.MIP
             for (int t = 0; t < totalTime; t++)
             {
                 if (CC.Adequacy)
-                    lorcost += Vars.LossOfReserve[t];
+                    lorcost += Vars.LossOfReserve[t] / 10;
                 else
                     lorcost += Vars.LossOfReserve[t] * PS.VOLR;
             }
@@ -212,6 +212,10 @@ namespace CleanCommit.MIP
                     GenCost += Vars.Commit[t, u] * (Vars.PiecewiseGeneration[u].GetCost(unit.pMin) + unit.A);
                     GenCost += SummationTotal(totalPiecewiseSegments, s => Vars.Piecewise[t, u, s] * Vars.PiecewiseGeneration[u].PiecewiseSlope[s]);
 
+                }
+                for (int n = 0; n < totalNodes; n++)
+                {
+                    GenCost += Vars.DemandResponse[n, t] * PS.DRSCost;
                 }
             }
             Model.AddConstr(GenerationCost == GenCost, "");

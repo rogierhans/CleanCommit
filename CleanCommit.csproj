@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{62558BFB-7106-4580-B1D1-5F8CD9AD5E3B}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>CleanCommitment</RootNamespace>
+    <RootNamespace>CleanCommit</RootNamespace>
     <AssemblyName>CleanCommitment</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -39,6 +39,9 @@
     <Reference Include="MathNet.Numerics, Version=4.15.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\MathNet.Numerics.4.15.0\lib\net461\MathNet.Numerics.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -55,9 +58,11 @@
   <ItemGroup>
     <Compile Include="Experiment.cs" />
     <Compile Include="Instance\PTDFCalculator2.cs" />
+    <Compile Include="Instance\Reserve.cs" />
     <Compile Include="MIP\CallBackTrans.cs" />
     <Compile Include="MIP\Objective.cs" />
     <Compile Include="MIP\ReserveConstraint.cs" />
+    <Compile Include="Solution.cs" />
     <Compile Include="OldCode\ClusterMIP.cs" />
     <Compile Include="Instance\ConstraintConfiguration.cs" />
     <Compile Include="MIP\Constraint.cs" />
