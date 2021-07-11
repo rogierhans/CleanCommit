@@ -39,7 +39,7 @@ namespace CleanCommit
 
             // new DirectoryInfo(@"C:\Users\4001184\Desktop\ZondagNacht").GetFiles().Select(x => x.FullName).ToList().ForEach(x => Experiment.Foto(x, x.Split('\\').Last().Split('.').First()));
             //Experiment.Test0();
-            Experiment.Wrapper();
+            Experiment.UnitTestOfz();
             //Experiment.YearTests();
            // Experiment.Test();
          //  Experiment.TestGA10();

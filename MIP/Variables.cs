@@ -13,6 +13,7 @@ namespace CleanCommit.MIP
         public GRBVar[,,] ReserveThermal; // time x units x reservetype;
         public GRBVar[,,] ReserveStorage; // time x Sunits x reservetype;
         public GRBVar[,,] Piecewise; // time x units x segments
+
         public GRBVar[,] Commit; // time x units
         public GRBVar[,] Start; // time x units
         public GRBVar[,] Stop; // time x units
@@ -28,7 +29,8 @@ namespace CleanCommit.MIP
         public GRBVar[,] NodalLossOfLoad; // node x time
         public GRBVar[,] NodalInjectionAC; // node x time
         public GRBVar[,] NodalInjectionDC; // node x time
-        public GRBVar[,] DemandResponse; // node x time
+        public GRBVar[,] DemandShed; // node x time
+     //   public GRBVar[,] DemandShift; // node x time
         public GRBVar[,] RESIDUALDemand;
         //public GRBVar[,,] NodalRESGeneration;
         public List<GRBVar>[,] StartCostIntervall;
@@ -206,7 +208,7 @@ namespace CleanCommit.MIP
         private void AddNodalVariables()
         {
             NodalLossOfLoad = new GRBVar[totalNodes, totalTime];
-            DemandResponse = new GRBVar[totalNodes, totalTime];
+            DemandShed = new GRBVar[totalNodes, totalTime];
             LossOfReserve = new GRBVar[totalTime];
             NodalInjectionAC = new GRBVar[totalNodes, totalTime];
             NodalInjectionDC = new GRBVar[totalNodes, totalTime];
@@ -219,11 +221,11 @@ namespace CleanCommit.MIP
                     var node = PS.Nodes[n];
                     RESIDUALDemand[n, t] = Model.AddVar(0, node.NodalDemand(t), 0.0, GRB.CONTINUOUS, "ResidualDemand" + n + "_" + t);
                     NodalLossOfLoad[n, t] = Model.AddVar(0, node.NodalDemand(t), 0.0, GRB.CONTINUOUS, "NodalLoL_" + n + "_" + t);
-                    DemandResponse[n, t] = Model.AddVar(0, node.DemandResonsePotential, 0.0, GRB.CONTINUOUS, "DemandResponse" + n + "_" + t);
+                    DemandShed[n, t] = Model.AddVar(0, node.DemandResonsePotential, 0.0, GRB.CONTINUOUS, "DemandResponse" + n + "_" + t);
                     NodalInjectionAC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionAC_" + t);
                     NodalInjectionDC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionDC_" + t);
 
-                    Model.AddConstr(RESIDUALDemand[n, t] == (node.NodalDemand(t) - DemandResponse[n, t] - NodalLossOfLoad[n, t]), "ResidualLoad_"+ n +"_" + t);
+                    Model.AddConstr(RESIDUALDemand[n, t] == (node.NodalDemand(t) - DemandShed[n, t] - NodalLossOfLoad[n, t]), "ResidualLoad_"+ n +"_" + t);
                 }
             }
         }

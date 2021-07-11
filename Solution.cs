@@ -93,7 +93,7 @@ namespace CleanCommit.MIP
             LossOfReserve = Get(vars.LossOfReserve);
             NodalLossOfLoad = Get(vars.NodalLossOfLoad);
             RESIDUALDemand = Get(vars.RESIDUALDemand);
-            DemandResponse = Get(vars.DemandResponse);
+            DemandResponse = Get(vars.DemandShed);
             NodalInjectionAC = Get(vars.NodalInjectionAC);
             NodalInjectionDC = Get(vars.NodalInjectionDC);
 

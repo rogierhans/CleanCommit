@@ -14,6 +14,7 @@ namespace CleanCommit.MIP
         public GRBLinExpr CurrentObjective;
         public GRBVar GenerationCost;
         public GRBVar CycleCost;
+        public GRBVar DRCost;
         public GRBVar LOLCost;
         public GRBVar LORCost;
 
@@ -48,14 +49,15 @@ namespace CleanCommit.MIP
             LinkStartUpCost();
             LinkLossOfLoad();
             LinkLossOfReserve();
+            LinkDRCost();
             //Objective += GenerationCostVariable + CycleCostVariable + LOLCostVariable;
             if (CC.Adequacy)
             {
-                CurrentObjective += LOLCost + LORCost;
+                CurrentObjective += LOLCost + LORCost + DRCost;
             }
             else
             {
-                CurrentObjective += GenerationCost + CycleCost + LOLCost + LORCost;
+                CurrentObjective += GenerationCost + CycleCost + LOLCost + LORCost + DRCost;
             }
             Model.SetObjective(CurrentObjective, GRB.MINIMIZE);
         }
@@ -176,7 +178,7 @@ namespace CleanCommit.MIP
                 for (int n = 0; n < totalNodes; n++)
                 {
                     if (CC.Adequacy)
-                        lolCost += Vars.NodalLossOfLoad[n, t] ;
+                        lolCost += Vars.NodalLossOfLoad[n, t] * PS.VOLL;
                     else
                         lolCost += Vars.NodalLossOfLoad[n, t] * PS.VOLL;
 
@@ -192,7 +194,7 @@ namespace CleanCommit.MIP
             for (int t = 0; t < totalTime; t++)
             {
                 if (CC.Adequacy)
-                    lorcost += Vars.LossOfReserve[t] / 10;
+                    lorcost += Vars.LossOfReserve[t] * PS.VOLR;
                 else
                     lorcost += Vars.LossOfReserve[t] * PS.VOLR;
             }
@@ -213,12 +215,22 @@ namespace CleanCommit.MIP
                     GenCost += SummationTotal(totalPiecewiseSegments, s => Vars.Piecewise[t, u, s] * Vars.PiecewiseGeneration[u].PiecewiseSlope[s]);
 
                 }
-                for (int n = 0; n < totalNodes; n++)
-                {
-                    GenCost += Vars.DemandResponse[n, t] * PS.DRSCost;
-                }
             }
             Model.AddConstr(GenerationCost == GenCost, "");
+        }
+
+        private void LinkDRCost()
+        {
+            DRCost = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "DRCost");
+            GRBLinExpr cost = new GRBLinExpr();
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int n = 0; n < totalNodes; n++)
+                {
+                    cost += Vars.DemandShed[n, t] * PS.DRSCost;
+                }
+            }
+            Model.AddConstr(DRCost == cost, "");
         }
 
         public void LinkStartUpCost()

@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using CleanCommit.Instance;
+using System.Diagnostics;
 
 namespace CleanCommit
 {
@@ -106,7 +107,7 @@ namespace CleanCommit
                 g.DrawLine(new Pen(Color.Black,10),x1,y1,x2,y2);
                 g.FillEllipse(new SolidBrush(Color.Black), x1-15, y1 - 15, 30, 30);
             }
-
+            Debugger.Break();
             bmp.Save(file);
         }
 

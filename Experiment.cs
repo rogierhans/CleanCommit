@@ -17,8 +17,8 @@ namespace CleanCommit
         public static string[] FastInstances = new string[] { "GA10.uc", "TAI38.uc", "A110.uc", "DispaSET.uc", "RTS26.uc" };
 
         public static string[] TYDNPInstances = new string[] { "DE_2040", "GA_2040", "NT_2040", "GA_2030", "NT_2030", "DE_2030" };
-         //public static string[] TYDNPInstances = new string[] { "DE_2030"};
-       // public static string[] TYDNPInstances = new string[] { "GA_2030", "NT_2030", "DE_2040", "GA_2040", "NT_2040" };
+        //public static string[] TYDNPInstances = new string[] { "DE_2030"};
+        // public static string[] TYDNPInstances = new string[] { "GA_2030", "NT_2030", "DE_2040", "GA_2040", "NT_2040" };
         public void Foto(string filename, string nameOutput)
         {
 
@@ -124,20 +124,48 @@ namespace CleanCommit
 
             }
         }
+        public void UnitTestOfz()
+        {
+            string filename = @"C:\Users\4001184\Google Drive\Data\ACDC\DE_2030_1979.uc";
+            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false);
+            CC.Adequacy = true;
+            CC.SetLimits(0, 8760);
+            PowerSystem PS = IOUtils.GetPowerSystem(filename);
+            Run();
+            void Run()
+            {
+                TightSolver TS = new TightSolver(PS, CC);
+                TS.ConfigureModel();
+                var output = TS.NewSolve(36000, 1);
+                //Console.ReadLine();
+                List<object> cells = new List<object>() {
+                        PS.ToString(),
+                        CC.ToString(),
+                        output.GurobiCost,
+                        output.GurobiCostLOL,
+                        output.GurobiCostLOR,
+                        output.GurobiCostGeneration,
+                        output.GurobiCostCycle,
+                        output.ComputationTime };
+                var line = string.Join("\t", cells);
+                File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\log.txt", line + "\n");
+                TS.Kill();
+            }
 
- 
+        }
 
-        public void Wrapper()
+
+        public void AllTests()
         {
 
             int timehorizon = 8760;
-            var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false);
-            // CC.Adequacy = true;
+            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.Copperplate, false, true, 1, false);
+            //  CC.Adequacy = true;
             CC.SetLimits(0, timehorizon);
-            CC.Reserves.Add(new Reserve(0.01, 0, 1.0 / 12, 0, 0));
-            CC.Reserves.Add(new Reserve(0, 3000, 1.0 / 6, 0, 0));
-            CC.Reserves.Add(new Reserve(0, 0, 1, 0.12, 0.10));
-            Expriment8(CC,"ComplexYear");
+            //CC.Reserves.Add(new Reserve(0.01, 0, 1.0 / 12, 0, 0));
+            //CC.Reserves.Add(new Reserve(0, 3000, 1.0 / 6, 0, 0));
+            //CC.Reserves.Add(new Reserve(0, 0, 1, 0.12, 0.10));
+            Expriment8(CC, "FirstRun");
 
 
             //CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, false, 1, false);
@@ -146,7 +174,7 @@ namespace CleanCommit
             //CC.Reserves.Add(new Reserve(0.01, 0, 1.0 / 12, 0, 0));
             //CC.Reserves.Add(new Reserve(0, 3000, 1.0 / 6, 0, 0));
             //CC.Reserves.Add(new Reserve(0, 0, 1, 0.12, 0.10));
-            //Expriment8(CC);
+            //Expriment8(CC);  
 
             //CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false);
             //CC.Adequacy = true;
@@ -158,20 +186,25 @@ namespace CleanCommit
         }
         public void Expriment8(ConstraintConfiguration CC, string extra)
         {
-            foreach (var instance in TYDNPInstances)
+            for (int year = 1979; year <= 2020; year++)
             {
-                string filename = @"C:\Users\4001184\Google Drive\Data\Github\" + instance + ".uc";
-                //string filename = @"C:\Users\Rogier\Google Drive\Data\Github\RCUC200.uc";
 
-                PowerSystem PS = IOUtils.GetPowerSystem(filename);
-                Run();
-                void Run()
+
+                foreach (var instance in TYDNPInstances)
                 {
-                    TightSolver TS = new TightSolver(PS, CC);
-                    TS.ConfigureModel();
-                    var output = TS.NewSolve(36000, 1);
-                    //Console.ReadLine();
-                    List<object> cells = new List<object>() {
+                    string filename = @"C:\Users\" + Environment.UserName + @"\Google Drive\Data\ACDC\" + instance + "_" + year + ".uc";
+                    //string filename = @"C:\Users\Rogier\Google Drive\Data\Github\RCUC200.uc";
+
+                    PowerSystem PS = IOUtils.GetPowerSystem(filename);
+                    Run();
+                    void Run()
+                    {
+                        TightSolver TS = new TightSolver(PS, CC);
+                        TS.ConfigureModel();
+                        var output = TS.NewSolve(36000, 1);
+                        //Console.ReadLine();
+                        List<object> cells = new List<object>() {
+                            year,
                         PS.ToString(),
                         CC.ToString(),
                         output.GurobiCost,
@@ -180,13 +213,14 @@ namespace CleanCommit
                         output.GurobiCostGeneration,
                         output.GurobiCostCycle,
                         output.ComputationTime };
-                    var line = string.Join("\t", cells);
-                    File.AppendAllText(@"C:\Users\4001184\Desktop\log.txt", line + "\n");
-                    output.ToCSV(@"C:\Users\4001184\Desktop\UC\" + PS.Name.Split('.').First() +"_" + extra+ ".csv");
-                    output.ToBin(@"C:\Users\4001184\Desktop\UC\" + PS.Name.Split('.').First() + "_" + extra + ".bin");
-                    TS.Kill();
-                }
+                        var line = string.Join("\t", cells);
+                        File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\log.txt", line + "\n");
+                        output.ToCSV(@"C:\Users\" + Environment.UserName + @"\Desktop\UC\" + PS.Name.Split('.').First() + "_" + year + "_" + extra + ".csv");
+                        output.ToBin(@"C:\Users\" + Environment.UserName + @"\Desktop\UC\" + PS.Name.Split('.').First() + "_" + year + "_" + extra + ".bin");
+                        TS.Kill();
+                    }
 
+                }
             }
         }
 
