@@ -56,6 +56,7 @@
     <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CFMaximization.cs" />
     <Compile Include="Experiment.cs" />
     <Compile Include="Instance\PTDFCalculator2.cs" />
     <Compile Include="Instance\Reserve.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="MIP\TightSolver.cs" />
     <Compile Include="Instance\TransmissionLine.cs" />
     <Compile Include="Instance\Unit.cs" />
+    <Compile Include="SolutionAnalyssis.cs" />
     <Compile Include="SolverOutput.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>

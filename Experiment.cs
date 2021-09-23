@@ -86,10 +86,13 @@ namespace CleanCommit
         {
             foreach (var instance in TYDNPInstances)
             {
-                string filename = @"C:\Users\" + Environment.UserName + @"\Google Drive\Data\Github\" + instance + ".uc";
+
+                string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC\" + instance + ".uc";
                 //string filename = @"C:\Users\Rogier\Google Drive\Data\Github\RCUC200.uc";
-                var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false);
-                CC.Adequacy = true;
+                var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
+                {
+                    Adequacy = true
+                };
                 Console.WriteLine(filename);
                 CC.SetLimits(0, 24 * 30);
 
@@ -127,9 +130,11 @@ namespace CleanCommit
         public void UnitTestOfz()
         {
             string filename = @"C:\Users\4001184\Google Drive\Data\ACDC\DE_2030_1979.uc";
-            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false);
-            CC.Adequacy = true;
-            CC.SetLimits(0, 8760);
+            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
+            {
+                Adequacy = true
+            };
+            CC.SetLimits(0, 24);
             PowerSystem PS = IOUtils.GetPowerSystem(filename);
             Run();
             void Run()
@@ -159,14 +164,16 @@ namespace CleanCommit
         {
 
             int timehorizon = 8760;
-            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.Copperplate, false, true, 1, false);
-            //  CC.Adequacy = true;
+            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
+            {
+                Adequacy = true
+            };
             CC.SetLimits(0, timehorizon);
             //CC.Reserves.Add(new Reserve(0.01, 0, 1.0 / 12, 0, 0));
             //CC.Reserves.Add(new Reserve(0, 3000, 1.0 / 6, 0, 0));
             //CC.Reserves.Add(new Reserve(0, 0, 1, 0.12, 0.10));
-            Expriment8(CC, "FirstRun");
-
+            // Expriment8(CC, "RealRun");
+            ExprimentFake(CC, "RealRun");
 
             //CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, false, 1, false);
             //CC.Adequacy = true;
@@ -186,7 +193,89 @@ namespace CleanCommit
         }
         public void Expriment8(ConstraintConfiguration CC, string extra)
         {
-            for (int year = 1979; year <= 2020; year++)
+            for (int year = 1979; year < 2019; year++)
+            {
+                foreach (var instance in TYDNPInstances)
+                {
+                    string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC\" + instance + "_" + year + ".uc";
+                    PowerSystem PS = IOUtils.GetPowerSystem(filename);
+                    Run();
+                    void Run()
+                    {
+                        TightSolver TS = new TightSolver(PS, CC);
+                        TS.ConfigureModel();
+                        var output = TS.NewSolve(36000, 1);
+                        //Console.ReadLine();
+                        List<object> cells = new List<object>() {
+                        year,
+                        PS.ToString(),
+                        CC.ToString(),
+                        output.LOLCounter,
+                        output.DRCounter,
+                        output.GurobiCost,
+                        output.GurobiCostLOL,
+                        output.GurobiCostLOR,
+                        output.GurobiCostDR,
+                        output.GurobiCostGeneration,
+                        output.GurobiCostCycle,
+                        output.ComputationTime };
+                        var line = string.Join("\t", cells);
+                        File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\FullExperiment.txt", line + "\n");
+                        output.ToCSV(@"E:\UCCsv\" + PS.Name.Split('.').First() + "_" + extra + ".csv");
+                        output.ToBin(@"E:\UCBin\" + PS.Name.Split('.').First() + "_" + extra + ".bin");
+                        TS.Kill();
+                    }
+                }
+            }
+        }
+        public void ExprimentFake(ConstraintConfiguration CC, string extra)
+        {
+
+            {
+                int year = 1979;
+                foreach (var instance in TYDNPInstances)
+                {
+                    string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC_WON\" + instance + "_" + year + ".uc";
+                    PowerSystem PS = IOUtils.GetPowerSystem(filename);
+                    Run();
+                    void Run()
+                    {
+                        TightSolver TS = new TightSolver(PS, CC);
+                        TS.ConfigureModel();
+                        var output = TS.NewSolve(36000, 1);
+                        //Console.ReadLine();
+                        List<object> cells = new List<object>() {
+                        year,
+                        PS.ToString(),
+                        CC.ToString(),
+                        output.LOLCounter,
+                        output.DRCounter,
+                        output.GurobiCost,
+                        output.GurobiCostLOL,
+                        output.GurobiCostLOR,
+                        output.GurobiCostDR,
+                        output.GurobiCostGeneration,
+                        output.GurobiCostCycle,
+                        output.ComputationTime };
+                        var line = string.Join("\t", cells);
+                        File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\FullExperimentFake.txt", line + "\n");
+                       // output.ToCSV(@"E:\UCCsv\" + PS.Name.Split('.').First() + "_" + extra + ".csv");
+                        //output.ToBin(@"E:\UCBin\" + PS.Name.Split('.').First() + "_" + extra + ".bin");
+                        TS.Kill();
+                    }
+                }
+            }
+        }
+
+        public void Expriment9()
+        {
+
+            int timehorizon = 24;
+            var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false);
+            //  CC.Adequacy = true;
+            CC.SetLimits(0, timehorizon);
+
+            for (int year = 1979; year < 1980; year++)
             {
 
 
@@ -207,16 +296,20 @@ namespace CleanCommit
                             year,
                         PS.ToString(),
                         CC.ToString(),
+                        output.LOLCounter,
+                        output.DRCounter,
                         output.GurobiCost,
                         output.GurobiCostLOL,
                         output.GurobiCostLOR,
+                           output.GurobiCostDR,
+
                         output.GurobiCostGeneration,
                         output.GurobiCostCycle,
                         output.ComputationTime };
                         var line = string.Join("\t", cells);
-                        File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\log.txt", line + "\n");
-                        output.ToCSV(@"C:\Users\" + Environment.UserName + @"\Desktop\UC\" + PS.Name.Split('.').First() + "_" + year + "_" + extra + ".csv");
-                        output.ToBin(@"C:\Users\" + Environment.UserName + @"\Desktop\UC\" + PS.Name.Split('.').First() + "_" + year + "_" + extra + ".bin");
+                        File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\logtest.txt", line + "\n");
+                        output.ToCSV(@"E:\UCcsvTest\" + PS.Name.Split('.').First() + "_" + "test" + ".csv");
+                        output.ToBin(@"E:\UCbinTest\" + PS.Name.Split('.').First() + "_" + "test" + ".bin");
                         TS.Kill();
                     }
 
@@ -280,8 +373,10 @@ namespace CleanCommit
 
             //  string filename = @"C:\Users\4001184\Google Drive\Data\Github\ACDCESMSmall.uc";
             string filename = @"C:\Users\Rogier\Google Drive\Data\Github\FERC923.uc";
-            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false);
-            CC.Adequacy = true;
+            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
+            {
+                Adequacy = true
+            };
             Console.WriteLine(filename);
             CC.SetLimits(0, 24);
             PowerSystem PS = IOUtils.GetPowerSystem(filename);
@@ -298,14 +393,14 @@ namespace CleanCommit
         }
         public void TestRCUC200()
         {
-            string filename = @"C:\Users\Rogier\Dropbox\Data\NewInstances\RCUC200.uc";
-            var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.Copperplate, false, false, 1, false);
-            Console.WriteLine(filename);
-            CC.SetLimits(0, 24);
-            PowerSystem PowerSystem = IOUtils.GetPowerSystem(filename);
-            TightSolver TS = new TightSolver(PowerSystem, CC);
-            TS.ConfigureModel();
-            var output = TS.SolveMin(600, 0);
+            //string filename = @"C:\Users\Rogier\Dropbox\Data\NewInstances\RCUC200.uc";
+            //var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.Copperplate, false, false, 1, false);
+            //Console.WriteLine(filename);
+            //CC.SetLimits(0, 24);
+            //PowerSystem PowerSystem = IOUtils.GetPowerSystem(filename);
+            //TightSolver TS = new TightSolver(PowerSystem, CC);
+            //TS.ConfigureModel();
+            //var output = TS.SolveMin(600, 0, "Gas");
         }
         public void TestTransmission()
         {
@@ -319,34 +414,34 @@ namespace CleanCommit
 
         public void BaseTest()
         {
-            var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.Copperplate, false, true, 1, true);
-            string filename = U.InstanceFolder + "CA610.uc";
-            Console.WriteLine(filename);
-            CC.SetLimits(0, 24);
-            PowerSystem PowerSystem = IOUtils.GetPowerSystem(filename);
-            TightSolver TS = new TightSolver(PowerSystem, CC);
-            TS.ConfigureModel();
-            var output = TS.SolveMin(600, 0);
-            output.WriteToCSV(@"C:\Users\Rogier\Desktop\TEMPoutput\IP.csv", "");
-            Console.ReadLine();
+            //var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.Copperplate, false, true, 1, true);
+            //string filename = U.InstanceFolder + "CA610.uc";
+            //Console.WriteLine(filename);
+            //CC.SetLimits(0, 24);
+            //PowerSystem PowerSystem = IOUtils.GetPowerSystem(filename);
+            //TightSolver TS = new TightSolver(PowerSystem, CC);
+            //TS.ConfigureModel();
+            //var output = TS.SolveMin(600, 0,"GAS");
+            //output.WriteToCSV(@"C:\Users\Rogier\Desktop\TEMPoutput\IP.csv", "");
+            //Console.ReadLine();
         }
 
         public void BaseTestAll()
         {
-            foreach (var instance in AllInstances)
-            {
-                var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.Copperplate, false, true, 1, true);
-                string filename = U.InstanceFolder + instance;
-                Console.WriteLine(filename);
-                CC.SetLimits(0, 24);
-                PowerSystem PowerSystem = IOUtils.GetPowerSystem(filename);
-                TightSolver TS = new TightSolver(PowerSystem, CC, 0.00001);
-                TS.ConfigureModel();
-                var output = TS.SolveMin(600, 0);
-                string line = instance + " " + output.GurobiCost + "\n";
-                File.AppendAllText(@"C:\Users\Rogier\Desktop\outputLP.txt", line);
-                //Console.ReadLine();
-            }
+            //foreach (var instance in AllInstances)
+            //{
+            //    var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.Copperplate, false, true, 1, true);
+            //    string filename = U.InstanceFolder + instance;
+            //    Console.WriteLine(filename);
+            //    CC.SetLimits(0, 24);
+            //    PowerSystem PowerSystem = IOUtils.GetPowerSystem(filename);
+            //    TightSolver TS = new TightSolver(PowerSystem, CC, 0.00001);
+            //    TS.ConfigureModel();
+            //    var output = TS.SolveMin(600, 0,"Gas");
+            //    string line = instance + " " + output.GurobiCost + "\n";
+            //    File.AppendAllText(@"C:\Users\Rogier\Desktop\outputLP.txt", line);
+            //    //Console.ReadLine();
+            //}
         }
     }
 }

@@ -28,7 +28,7 @@ namespace CleanCommit.Instance
         public bool Tight;
 
         public int TotalTime;
-        public int SkipTime;
+        public int TimeOffSet;
         public int PiecewiseSegments;
         public List<Reserve> Reserves = new List<Reserve>();
         public bool Adequacy = false;
@@ -45,9 +45,9 @@ namespace CleanCommit.Instance
             Tight = tight;
         }
 
-        public void SetLimits(int skipTime, int totalTime)
+        public void SetLimits(int timeOffset, int totalTime)
         {
-            this.SkipTime = skipTime;
+            this.TimeOffSet = timeOffset;
             this.TotalTime = totalTime;
         }
 
@@ -73,7 +73,7 @@ namespace CleanCommit.Instance
         public ConstraintConfiguration Copy()
         {
             var newCC = new ConstraintConfiguration(RampingLimits, MinUpMinDown, TransmissionMode, TimeDependantStartUpCost, Relax, PiecewiseSegments, Tight);
-            newCC.SetLimits(SkipTime, TotalTime);
+            newCC.SetLimits(TimeOffSet, TotalTime);
             return newCC;
         }
     }

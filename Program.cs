@@ -35,16 +35,18 @@ namespace CleanCommit
 
 
             // var instanceNames = new string[] { , };
-            var Experiment = new Experiment();
+            var Experiment = new CFMaximization();
 
             // new DirectoryInfo(@"C:\Users\4001184\Desktop\ZondagNacht").GetFiles().Select(x => x.FullName).ToList().ForEach(x => Experiment.Foto(x, x.Split('\\').Last().Split('.').First()));
             //Experiment.Test0();
-            Experiment.UnitTestOfz();
-            //Experiment.YearTests();
-           // Experiment.Test();
-         //  Experiment.TestGA10();
+          //  Experiment.Expriment9();
+          //  Experiment.AllTests("GAS",1.001);
+           // Experiment.AllTests("COAL", 1.001);
+            Experiment.AllTests("NUC", 1.001);
+            // Experiment.Test();
+            //  Experiment.TestGA10();
             //Experiment.TestGA102();
-           // Experiment.Dump();
+            // Experiment.Dump();
             // Experiment.TestGA10();
 
             //

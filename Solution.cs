@@ -17,12 +17,12 @@ namespace CleanCommit.MIP
         public double GurobiCostCycle;
         public double GurobiCostLOL;
         public double GurobiCostLOR;
+        public double GurobiCostDR;
         public double Gap;
         public int NumConstrs;
         public int NumVars;
         public int NumBinVars;
         public double[] LossOfReserve; // node x time
-        //public double[,] P; // time x units
         public double[,] Dispatch; // time x units
         public double[,] Commit; // time x units
         public double[,] Start; // time x units
@@ -42,10 +42,12 @@ namespace CleanCommit.MIP
         public double[,] NodalInjectionAC; // node x time
         public double[,] NodalInjectionDC; // node x time
         public double[,] NodalShadowPrice; // node x time
+        public double[,] LineUpperLimitShadowPrice; // lines x time
+        public double[,] LineLowerLimitShadowPrice; // lines x time
         public double[,,] ReserveThermal; // time x units x reservetype;
         public double[,,] ReserveStorage; // time x Sunits x reservetype;
-        //public double[,,] Piecewise; // time x units x segments
-
+        public int DRCounter = 0;
+        public int LOLCounter = 0;
         public PowerSystem PS;
         public ConstraintConfiguration CC;
 
@@ -67,14 +69,14 @@ namespace CleanCommit.MIP
             GurobiCostCycle = objective.CycleCost.X;
             GurobiCostLOL = objective.LOLCost.X;
             GurobiCostLOR = objective.LORCost.X;
+            GurobiCostDR = objective.DRCost.X;
             Gap = (CC.Relax ? 0 : model.MIPGap);
 
             ComputationTime = model.Runtime;
             NumConstrs = model.NumConstrs;
             NumVars = model.NumVars;
             NumBinVars = model.NumBinVars;
-            if (CC.Relax)
-                NodalShadowPrice = Get(PBC.NodalPowerBalance);
+
             double[,] P; // time x units
             P = Get(vars.P);
             ReserveThermal = Get(vars.ReserveThermal);
@@ -96,6 +98,12 @@ namespace CleanCommit.MIP
             DemandResponse = Get(vars.DemandShed);
             NodalInjectionAC = Get(vars.NodalInjectionAC);
             NodalInjectionDC = Get(vars.NodalInjectionDC);
+            if (CC.Relax)
+            {
+                NodalShadowPrice = Get(PBC.NodalPowerBalance);
+                LineLowerLimitShadowPrice = Get(TC.ACFlowLowerLimits);
+                LineUpperLimitShadowPrice = Get(TC.ACFlowUpperLimits);
+            }
 
             Dispatch = new double[P.GetLength(0), P.GetLength(1)];
             for (int t = 0; t < P.GetLength(0); t++)
@@ -105,6 +113,18 @@ namespace CleanCommit.MIP
                     var unit = PS.Units[g];
                     Dispatch[t, g] = P[t, g] + unit.pMin * Commit[t, g];
                 }
+            }
+            for (int t = 0; t < NodalLossOfLoad.GetLength(1); t++)
+            {
+                bool LossOfLoad = false;
+                bool DR = false;
+                for (int n = 0; n < NodalLossOfLoad.GetLength(0); n++)
+                {
+                    LossOfLoad |= NodalLossOfLoad[n, t] > 0.01;
+                    DR |= DemandResponse[n, t] > 0.01;
+                }
+                if (LossOfLoad) LOLCounter++;
+                if (DR) DRCounter++;
             }
         }
 
@@ -117,7 +137,10 @@ namespace CleanCommit.MIP
             lines.AddRange(MArrayToString("GurobiCostCycle", GurobiCostCycle));
             lines.AddRange(MArrayToString("GurobiCostLOL", GurobiCostLOL));
             lines.AddRange(MArrayToString("GurobiCostLOR", GurobiCostLOR));
+            lines.AddRange(MArrayToString("GurobiCostDR", GurobiCostDR));
             lines.AddRange(MArrayToString("Gap", Gap));
+            lines.AddRange(MArrayToString("LOLCounter", LOLCounter));
+            lines.AddRange(MArrayToString("DRCounter", DRCounter));
             lines.AddRange(MArrayToString("NumConstrs", NumConstrs));
             lines.AddRange(MArrayToString("NumVars", NumVars));
             lines.AddRange(MArrayToString("NumBinVars", NumBinVars));
@@ -140,7 +163,11 @@ namespace CleanCommit.MIP
             lines.AddRange(MArrayToString("NodalInjectionAC", NodalInjectionAC));
             lines.AddRange(MArrayToString("NodalInjectionDC", NodalInjectionDC));
             if (CC.Relax)
+            {
                 lines.AddRange(MArrayToString("NodalShadowPrice", NodalShadowPrice));
+                lines.AddRange(MArrayToString("LineLowerLimitShadowPrice", LineLowerLimitShadowPrice));
+                lines.AddRange(MArrayToString("LineUpperLimitShadowPrice", LineUpperLimitShadowPrice));
+            }
             lines.AddRange(MArrayToString("ReserveThermal", ReserveThermal));
             lines.AddRange(MArrayToString("ReserveStorage", ReserveStorage));
             // lines.AddRange(MArrayToString("Piecewise", Piecewise));

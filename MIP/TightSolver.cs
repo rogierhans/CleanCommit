@@ -72,101 +72,90 @@ namespace CleanCommit
         {
             var GenerationConstraint = new GenerationConstraint(PS, CC, model, Variables);
             GenerationConstraint.AddConstraint();
+
             var RampingConstraint = new RampConstraint(PS, CC, model, Variables);
             RampingConstraint.AddConstraint();
+
             var PiecewiseConstraint = new PiecewiseConstraint(PS, CC, model, Variables);
             PiecewiseConstraint.AddConstraint();
+
             TC = new TransmissionConstraint(PS, CC, model, Variables);
             TC.AddConstraint();
+
             PBC = new PowerBalanceContraint(PS, CC, model, Variables);
             PBC.AddConstraint();
+
             var LogicConstraint = new LogicConstraint(PS, CC, model, Variables);
             LogicConstraint.AddConstraint();
+
             var StorageConstraint = new StorageConstraint(PS, CC, model, Variables);
             StorageConstraint.AddConstraint();
+
             var MinUpDownConstraint = new MinUpDownConstraint(PS, CC, model, Variables);
             MinUpDownConstraint.AddConstraint();
+
             var TimeDepStartConstraint = new TimeDepStartConstraint(PS, CC, model, Variables);
             TimeDepStartConstraint.AddConstraint();
+
             var ReserveConstraint = new ReserveConstraint(PS, CC, model, Variables);
             ReserveConstraint.AddConstraint();
         }
-
 
         public void Kill()
         {
             model.Dispose();
             env.Dispose();
         }
-        public SolverOutput SolveMin(int TimeLimit, double fraction)
-        {
-            model.Parameters.TimeLimit = TimeLimit;
-            string filename = @"C:\Users\4001184\Desktop\gurobi.lp";
-            model.Write(filename);
-            model.Optimize();
-            Objective.OnlyAnalyses();
-            var output = new SolverOutput(Variables, Objective, model, model.Runtime);
-            File.AppendAllText(@"C:\Users\4001184\Desktop\text.txt", Objective.AltObjective.Value.ToString() + " " + output.GurobiCost.ToString() + "\n");
-            model.AddConstr(Objective.CurrentObjective <= output.GurobiCost * fraction, "");
-            new SolverOutput(Variables, Objective, model, model.Runtime).WriteToCSV(@"C:\Users\4001184\Desktop\temp4\", "1" + fraction);
-            Objective.AddAlternativeObjective();
-            model.Optimize();
-            var output2 = new SolverOutput(Variables, Objective, model, model.Runtime);
-            output2.WriteToCSV(@"C:\Users\4001184\Desktop\temp4\", "2" + fraction);
-            File.AppendAllText(@"C:\Users\4001184\Desktop\text.txt", "min:" + Objective.AltObjective.Value.ToString() + " " + output2.GurobiCost.ToString() + "\n");
-            return new SolverOutput(Variables, Objective, model, model.Runtime); ;
-        }
 
-        public SolverOutput SolveMax(int TimeLimit, double fraction)
+        public Solution CFOptimzation(int TimeLimit, double fraction, string generatorType, int GRBMINMAXMode)
         {
+            string Folder = @"C:\Users\Rogier\OneDrive - Universiteit Utrecht\CFMax\" + generatorType ;
+            Directory.CreateDirectory(Folder);
+
+            //Solve Original Model
             model.Parameters.TimeLimit = TimeLimit;
             model.Optimize();
-            Objective.OnlyAnalyses();
-            var output = new SolverOutput(Variables, Objective, model, model.Runtime);
-            File.AppendAllText(@"C:\Users\4001184\Desktop\text.txt", Objective.AltObjective.Value.ToString() + " " + output.GurobiCost.ToString() + "\n");
-            model.AddConstr(Objective.CurrentObjective <= output.GurobiCost * fraction, "");
-            new SolverOutput(Variables, Objective, model, model.Runtime).WriteToCSV(@"C:\Users\4001184\Desktop\temp4\", "1" + fraction);
-            Objective.AddAlternativeObjectiveMax();
+            var solution1 = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
+            double totalGenerationForSpecifiedType = SolutionAnalyssis.GetTotalGeneration(solution1, generatorType);
+            solution1.ToCSV(Folder + @"\OG_" + PS  );
+
+            // optimize <generatorType> CF while staying <fraction> within the original model objective value
+            model.AddConstr(Objective.CurrentObjective <= solution1.GurobiCost * fraction, "");
+            Objective.AddAlternativeObjective(generatorType, GRBMINMAXMode);
             model.Optimize();
-            var output3 = new SolverOutput(Variables, Objective, model, model.Runtime);
-            output3.WriteToCSV(@"C:\Users\4001184\Desktop\temp4\", "3" + fraction);
-            File.AppendAllText(@"C:\Users\4001184\Desktop\text.txt", "max:" + Objective.AltObjective.Value.ToString() + " " + output3.GurobiCost.ToString() + "\n");
-            return new SolverOutput(Variables, Objective, model, model.Runtime); ;
+            var solution2 = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
+            solution2.ToCSV(Folder + @"\"+ GRBMINMAXMode + "_" + PS);
+            double totalGenerationForSpecifiedType2 = SolutionAnalyssis.GetTotalGeneration(solution2, generatorType);
+        
+            File.AppendAllText(Folder + @"\text.txt",
+
+                  GRBMINMAXMode + "\t"
+                + fraction + "\t"
+                + PS + "\t"
+                + solution2.ComputationTime + "\t"
+                + totalGenerationForSpecifiedType + "\t"
+                + totalGenerationForSpecifiedType2 + "\t"
+                + totalGenerationForSpecifiedType2/ totalGenerationForSpecifiedType + "\t"
+                + solution1.GurobiCost + "\t"
+                + solution2.GurobiCost + "\t"
+                + "\n");
+            return solution2;
         }
 
-        public SolverOutput SolveMinCO2(int TimeLimit, double fraction)
-        {
-            model.Parameters.TimeLimit = TimeLimit;
-            string filename = @"C:\Users\4001184\Desktop\gurobi.lp";
-            model.Write(filename);
-            model.Optimize();
-            Objective.OnlyAnalysesCO2();
-            var output = new SolverOutput(Variables, Objective, model, model.Runtime);
-            File.AppendAllText(@"C:\Users\4001184\Desktop\text.txt", Objective.AltObjective.Value.ToString() + " " + output.GurobiCost.ToString() + "\n");
-            model.AddConstr(Objective.CurrentObjective <= output.GurobiCost * fraction, "");
-            new SolverOutput(Variables, Objective, model, model.Runtime).WriteToCSV(@"C:\Users\4001184\Desktop\temp2\", "1" + fraction);
-            Objective.AddCO2ObjectiveMin();
-            model.Optimize();
-            var output2 = new SolverOutput(Variables, Objective, model, model.Runtime);
-            output2.WriteToCSV(@"C:\Users\4001184\Desktop\temp2\", "2" + fraction);
-            File.AppendAllText(@"C:\Users\4001184\Desktop\text.txt", "min:" + Objective.AltObjective.Value.ToString() + " " + output2.GurobiCost.ToString() + "\n");
-            return new SolverOutput(Variables, Objective, model, model.Runtime); ;
-        }
-
-        public SolverOutput SolveMaxCO2(int TimeLimit, double fraction)
+        public SolverOutput CO2Optimzation(int TimeLimit, double fraction, int GRBMINMAXMode)
         {
             model.Parameters.TimeLimit = TimeLimit;
             model.Optimize();
             Objective.OnlyAnalysesCO2();
-            var output = new SolverOutput(Variables, Objective, model, model.Runtime);
+            var output = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
             File.AppendAllText(@"C:\Users\4001184\Desktop\text.txt", Objective.AltObjective.Value.ToString() + " " + output.GurobiCost.ToString() + "\n");
             model.AddConstr(Objective.CurrentObjective <= output.GurobiCost * fraction, "");
             new SolverOutput(Variables, Objective, model, model.Runtime).WriteToCSV(@"C:\Users\4001184\Desktop\temp2\", "1" + fraction);
-            Objective.AddCO2ObjectiveMax();
+            Objective.AddCO2Objective(GRBMINMAXMode);
             model.Optimize();
-            var output3 = new SolverOutput(Variables, Objective, model, model.Runtime);
-            output3.WriteToCSV(@"C:\Users\4001184\Desktop\temp2\", "3" + fraction);
-            File.AppendAllText(@"C:\Users\4001184\Desktop\text.txt", "max:" + Objective.AltObjective.Value.ToString() + " " + output3.GurobiCost.ToString() + "\n");
+            var output2 = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
+            output2.ToCSV(@"C:\Users\4001184\Desktop\temp2\2_" + fraction + "_");
+            File.AppendAllText(@"C:\Users\4001184\Desktop\text.txt", GRBMINMAXMode + ":" + Objective.AltObjective.Value.ToString() + " " + output2.GurobiCost.ToString() + "\n");
             return new SolverOutput(Variables, Objective, model, model.Runtime); ;
         }
 
@@ -183,12 +172,7 @@ namespace CleanCommit
             model.Parameters.TimeLimit = TimeLimit;
             model.Parameters.Method = v;
             model.Optimize();
-            return new Solution(model, Objective, Variables, PS, CC,TC,PBC);
+            return new Solution(model, Objective, Variables, PS, CC, TC, PBC);
         }
-
-
-
-
-        //  public SolverOutput TransFix(int TimeLimit) { }
     }
 }

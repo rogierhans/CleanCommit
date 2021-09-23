@@ -239,7 +239,7 @@ namespace CleanCommit.MIP
                 var line = PS.LinesAC[l];
                 for (int t = 0; t < totalTime; t++)
                 {
-                    TransmissionFlowAC[l, t] = Model.AddVar(line.MinCapacity, line.MaxCapacity, 0.0, GRB.CONTINUOUS, "TransAC_" + l + "_" + t);
+                    TransmissionFlowAC[l, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "TransAC_" + l + "_" + t);
                 }
             }
             for (int l = 0; l < totalLinesDC; l++)

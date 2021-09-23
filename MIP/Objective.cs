@@ -28,6 +28,8 @@ namespace CleanCommit.MIP
         private readonly ConstraintConfiguration CC;
         private readonly double[,] PDTF;
         private readonly char Type;
+
+        public GRBLinExpr AltObjective;
         public Objective(PowerSystem ps, ConstraintConfiguration cc, GRBModel model, TightSolver solver, Variables vars)
         {
             Model = model;
@@ -62,23 +64,7 @@ namespace CleanCommit.MIP
             Model.SetObjective(CurrentObjective, GRB.MINIMIZE);
         }
 
-        public void OnlyAnalyses()
-        {
-            AltObjective = new GRBLinExpr();
-            for (int t = 0; t < totalTime; t++)
-            {
-                for (int u = 0; u < totalUnits; u++)
-                {
 
-                    Unit unit = PS.Units[u];
-                    if (unit.PrintType == "GAS")
-                    {
-                        AltObjective += Vars.P[t, u];
-                    }
-                    //Console.WriteLine(Vars.PiecewiseGeneration[u]);
-                }
-            }
-        }
 
         public void OnlyAnalysesCO2()
         {
@@ -87,14 +73,28 @@ namespace CleanCommit.MIP
             {
                 for (int u = 0; u < totalUnits; u++)
                 {
-
                     Unit unit = PS.Units[u];
                     AltObjective += Vars.P[t, u] * unit.CO2Variable + Vars.Commit[t, u] * unit.CO2Fixed;
                 }
             }
         }
 
-        public void AddCO2ObjectiveMin()
+        public void AddCO2Objective(int GRBMINMAXMode)
+        {
+            AltObjective = new GRBLinExpr();
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int u = 0; u < totalUnits; u++)
+                {
+                    Unit unit = PS.Units[u];
+                    AltObjective += Vars.P[t, u] * unit.CO2Variable + Vars.Commit[t, u] * unit.CO2Fixed;
+                }
+            }
+            Model.SetObjective(AltObjective, GRBMINMAXMode);
+        }
+
+
+        public void AddAlternativeObjective(string GeneratorType, int mode)
         {
             AltObjective = new GRBLinExpr();
             for (int t = 0; t < totalTime; t++)
@@ -103,70 +103,17 @@ namespace CleanCommit.MIP
                 {
 
                     Unit unit = PS.Units[u];
-                    AltObjective += Vars.P[t, u] * unit.CO2Variable + Vars.Commit[t, u] * unit.CO2Fixed;
-
-                    //Console.WriteLine(Vars.PiecewiseGeneration[u]);
-                }
-            }
-            Model.SetObjective(AltObjective, GRB.MINIMIZE);
-        }
-
-        public void AddCO2ObjectiveMax()
-        {
-            AltObjective = new GRBLinExpr();
-            for (int t = 0; t < totalTime; t++)
-            {
-                for (int u = 0; u < totalUnits; u++)
-                {
-
-                    Unit unit = PS.Units[u];
-                    AltObjective += Vars.P[t, u] * unit.CO2Variable + Vars.Commit[t, u] * unit.CO2Fixed;
-
-                    //Console.WriteLine(Vars.PiecewiseGeneration[u]);
-                }
-            }
-            Model.SetObjective(AltObjective, GRB.MAXIMIZE);
-        }
-
-
-        public void AddAlternativeObjective()
-        {
-            AltObjective = new GRBLinExpr();
-            for (int t = 0; t < totalTime; t++)
-            {
-                for (int u = 0; u < totalUnits; u++)
-                {
-
-                    Unit unit = PS.Units[u];
-                    if (unit.PrintType == "GAS")
+                    if (unit.PrintType == GeneratorType)
                     {
                         AltObjective += Vars.P[t, u];
                     }
                     //Console.WriteLine(Vars.PiecewiseGeneration[u]);
                 }
             }
-            Model.SetObjective(AltObjective, GRB.MINIMIZE);
+            Model.SetObjective(AltObjective, mode);
         }
 
-        public GRBLinExpr AltObjective;
-        public void AddAlternativeObjectiveMax()
-        {
-            AltObjective = new GRBLinExpr();
-            for (int t = 0; t < totalTime; t++)
-            {
-                for (int u = 0; u < totalUnits; u++)
-                {
 
-                    Unit unit = PS.Units[u];
-                    if (unit.PrintType == "GAS")
-                    {
-                        AltObjective += Vars.P[t, u];
-                    }
-                    //Console.WriteLine(Vars.PiecewiseGeneration[u]);
-                }
-            }
-            Model.SetObjective(AltObjective, GRB.MAXIMIZE);
-        }
 
         private void LinkLossOfLoad()
         {

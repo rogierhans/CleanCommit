@@ -13,6 +13,7 @@ namespace CleanCommit.MIP
 
         public override void AddConstraint()
         {
+            AddLineLimits();
             AddDCTransmissionConstraints();
             AddZeroSumInjectionConstraints();
             if (CC.TransmissionMode == ConstraintConfiguration.TransmissionType.Copperplate)
@@ -97,6 +98,23 @@ namespace CleanCommit.MIP
                     KirchoffLaw[t, n] = Model.AddConstr(flowInMinusFlowOut == Variable.NodalInjectionAC[n, t], "KirchoffLaw" + n + "t" + t);
                 }
             }
+        }
+        public GRBConstr[,] ACFlowUpperLimits;
+        public GRBConstr[,] ACFlowLowerLimits;
+        private void AddLineLimits()
+        {
+            ACFlowUpperLimits = new GRBConstr[totalLinesAC, totalTime];
+            ACFlowLowerLimits = new GRBConstr[totalLinesAC, totalTime];
+            for (int l = 0; l < totalLinesAC; l++)
+            {
+                for (int t = 0; t < totalTime; t++)
+                {
+                    var line = PS.LinesAC[l];
+                    ACFlowUpperLimits[l, t] = Model.AddConstr(Variable.TransmissionFlowAC[l, t] <= line.MaxCapacity, "");
+                    ACFlowLowerLimits[l, t] = Model.AddConstr(Variable.TransmissionFlowAC[l, t] >= line.MinCapacity, "");
+                }
+            }
+
         }
 
 
