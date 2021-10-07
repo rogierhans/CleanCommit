@@ -54,11 +54,11 @@ namespace CleanCommit
         public virtual void ConfigureModel()
         {
             Console.WriteLine("Variables...");
-            Variables = new Variables(PS, CC, model, this);
+            Variables = new Variables(PS, CC, model);
             Variables.IntialiseVariables();
 
             Console.WriteLine("Objective...");
-            Objective = new Objective(PS, CC, model, this, Variables);
+            Objective = new Objective(PS, CC, model, Variables);
             Objective.AddObjective();
 
             Console.WriteLine("AddConstraints...");
@@ -107,9 +107,10 @@ namespace CleanCommit
             env.Dispose();
         }
 
-        public Solution CFOptimzation(int TimeLimit, double fraction, string generatorType, int GRBMINMAXMode)
+        public Solution CFOptimzation(int TimeLimit, double fraction, string generatorType)
         {
-            string Folder = @"C:\Users\Rogier\OneDrive - Universiteit Utrecht\CFMax\" + generatorType ;
+            string RootFolder = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\CFMax\";
+            string Folder = RootFolder + generatorType;
             Directory.CreateDirectory(Folder);
 
             //Solve Original Model
@@ -117,28 +118,48 @@ namespace CleanCommit
             model.Optimize();
             var solution1 = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
             double totalGenerationForSpecifiedType = SolutionAnalyssis.GetTotalGeneration(solution1, generatorType);
-            solution1.ToCSV(Folder + @"\OG_" + PS  );
+            solution1.ToCSV(Folder + @"\OG_" + PS);
 
             // optimize <generatorType> CF while staying <fraction> within the original model objective value
             model.AddConstr(Objective.CurrentObjective <= solution1.GurobiCost * fraction, "");
-            Objective.AddAlternativeObjective(generatorType, GRBMINMAXMode);
+            Objective.AddAlternativeObjective(generatorType, GRB.MINIMIZE);
             model.Optimize();
             var solution2 = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
-            solution2.ToCSV(Folder + @"\"+ GRBMINMAXMode + "_" + PS);
+            solution2.ToCSV(Folder + @"\" + GRB.MINIMIZE + "_" + PS);
             double totalGenerationForSpecifiedType2 = SolutionAnalyssis.GetTotalGeneration(solution2, generatorType);
-        
-            File.AppendAllText(Folder + @"\text.txt",
 
-                  GRBMINMAXMode + "\t"
+
+
+            Objective.AddObjective();
+            model.Optimize();
+
+
+            Objective.AddAlternativeObjective(generatorType, GRB.MAXIMIZE);
+            model.Optimize();
+            var solution3 = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
+            solution3.ToCSV(Folder + @"\" + GRB.MAXIMIZE + "_" + PS);
+            double totalGenerationForSpecifiedType3 = SolutionAnalyssis.GetTotalGeneration(solution3, generatorType);
+            int year = int.Parse(PS.ToString().Split('_')[2]);
+            DateTime dt = new DateTime(year, 1, 1);
+            dt = dt.AddHours(CC.TimeOffSet);
+            File.AppendAllText(RootFolder + @"\text.txt",
+               generatorType + "\t"
                 + fraction + "\t"
                 + PS + "\t"
+                + year + "\t" +
+                +CC.TimeOffSet + "\t" 
+                + dt.ToString() + "\t"
                 + solution2.ComputationTime + "\t"
+                + solution3.ComputationTime + "\t"
                 + totalGenerationForSpecifiedType + "\t"
                 + totalGenerationForSpecifiedType2 + "\t"
-                + totalGenerationForSpecifiedType2/ totalGenerationForSpecifiedType + "\t"
+                + totalGenerationForSpecifiedType3 + "\t"
+                + totalGenerationForSpecifiedType2 / totalGenerationForSpecifiedType3 + "\t"
                 + solution1.GurobiCost + "\t"
                 + solution2.GurobiCost + "\t"
+                + solution3.GurobiCost + "\t"
                 + "\n");
+
             return solution2;
         }
 

@@ -19,6 +19,12 @@ namespace CleanCommit.MIP
             AddStorageConstraints();
         }
 
+        public  void AddConstraintWithBeginAndEndLimits(Dictionary<int,double> Storage2Init, Dictionary<int, double> Storage2End)
+        {
+            AddStorageConstraints(Storage2Init, Storage2End);
+        }
+
+
         GRBConstr[,] StorageLevelConstaints;
         private void AddStorageConstraints()
         {
@@ -28,7 +34,7 @@ namespace CleanCommit.MIP
                 for (int s = 0; s < totalStorageUnits; s++)
                 {
                     var StorageUnit = PS.StorageUnits[s];
-                    var inflowValue = StorageUnit.GetInflow(t);
+                    var inflowValue = StorageUnit.GetInflow(t,CC.TimeOffSet);
                     // Console.WriteLine(inflowValue);
                     var inflowVar = Model.AddVar(0, inflowValue, 0.0, GRB.CONTINUOUS, "auxiliaryVariableStorageInflow_" + t + "_" + s);
                     var init = StorageUnit.MaxEnergy / 2;
@@ -43,6 +49,34 @@ namespace CleanCommit.MIP
                     else {
                         StorageLevelConstaints[t, s] = Model.AddConstr(Variable.Storage[t, s] == Variable.Storage[t - 1, s] + Variable.Charge[t, s] * StorageUnit.ChargeEffiency - Variable.Discharge[t, s] * StorageUnit.DischargeEffiencyInverse + inflowVar, "StorageLevel" + t + "s" + s);
                         Model.AddConstr(Variable.Storage[t, s] == init, "");
+                    }
+                }
+            }
+        }
+        private void AddStorageConstraints(Dictionary<int, double> Storage2Init, Dictionary<int, double> Storage2End)
+        {
+            StorageLevelConstaints = new GRBConstr[totalTime, totalStorageUnits];
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int s = 0; s < totalStorageUnits; s++)
+                {
+                    var StorageUnit = PS.StorageUnits[s];
+                    var inflowValue = StorageUnit.GetInflow(t, CC.TimeOffSet);
+                    // Console.WriteLine(inflowValue);
+                    var inflowVar = Model.AddVar(0, inflowValue, 0.0, GRB.CONTINUOUS, "auxiliaryVariableStorageInflow_" + t + "_" + s);
+                    var init = Storage2Init[s];
+                    if (t == 0)
+                    {
+                        StorageLevelConstaints[t, s] = Model.AddConstr(Variable.Storage[0, s] == Variable.Charge[0, s] * StorageUnit.ChargeEffiency - Variable.Discharge[0, s] * StorageUnit.DischargeEffiencyInverse + inflowVar + init, "InitalStorageLevel" + s);
+                    }
+                    else if (t < totalTime - 1)
+                    {
+                        StorageLevelConstaints[t, s] = Model.AddConstr(Variable.Storage[t, s] == Variable.Storage[t - 1, s] + Variable.Charge[t, s] * StorageUnit.ChargeEffiency - Variable.Discharge[t, s] * StorageUnit.DischargeEffiencyInverse + inflowVar, "StorageLevel" + t + "s" + s);
+                    }
+                    else
+                    {
+                        StorageLevelConstaints[t, s] = Model.AddConstr(Variable.Storage[t, s] == Variable.Storage[t - 1, s] + Variable.Charge[t, s] * StorageUnit.ChargeEffiency - Variable.Discharge[t, s] * StorageUnit.DischargeEffiencyInverse + inflowVar, "StorageLevel" + t + "s" + s);
+                        Model.AddConstr(Variable.Storage[t, s] == Storage2End[s], "");
                     }
                 }
             }

@@ -59,7 +59,7 @@ namespace CleanCommit.MIP
 
         protected double[,] PDTF;
         readonly char Type;
-        public Variables(PowerSystem ps, ConstraintConfiguration cc, GRBModel model, TightSolver solver)
+        public Variables(PowerSystem ps, ConstraintConfiguration cc, GRBModel model)
         {
             Model = model;
             PS = ps;
@@ -172,7 +172,8 @@ namespace CleanCommit.MIP
                 for (int r = 0; r < totalRES; r++)
                 {
                     var RES = PS.ResGenerations[r];
-                    RESDispatch[t, r] = Model.AddVar(0, RES.GetValue(t), 0.0, GRB.CONTINUOUS, "RES_" + t + "_" + r);
+                    var maxRES = RES.GetValue(t,CC.TimeOffSet);
+                    RESDispatch[t, r] = Model.AddVar(0, maxRES, 0.0, GRB.CONTINUOUS, "RES_" + t + "_" + r);
                 }
             }
         }
@@ -219,13 +220,13 @@ namespace CleanCommit.MIP
                 for (int n = 0; n < totalNodes; n++)
                 {
                     var node = PS.Nodes[n];
-                    RESIDUALDemand[n, t] = Model.AddVar(0, node.NodalDemand(t), 0.0, GRB.CONTINUOUS, "ResidualDemand" + n + "_" + t);
-                    NodalLossOfLoad[n, t] = Model.AddVar(0, node.NodalDemand(t), 0.0, GRB.CONTINUOUS, "NodalLoL_" + n + "_" + t);
+                    RESIDUALDemand[n, t] = Model.AddVar(0, node.NodalDemand(t, CC.TimeOffSet), 0.0, GRB.CONTINUOUS, "ResidualDemand" + n + "_" + t);
+                    NodalLossOfLoad[n, t] = Model.AddVar(0, node.NodalDemand(t,CC.TimeOffSet), 0.0, GRB.CONTINUOUS, "NodalLoL_" + n + "_" + t);
                     DemandShed[n, t] = Model.AddVar(0, node.DemandResonsePotential, 0.0, GRB.CONTINUOUS, "DemandResponse" + n + "_" + t);
                     NodalInjectionAC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionAC_" + t);
                     NodalInjectionDC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionDC_" + t);
 
-                    Model.AddConstr(RESIDUALDemand[n, t] == (node.NodalDemand(t) - DemandShed[n, t] - NodalLossOfLoad[n, t]), "ResidualLoad_"+ n +"_" + t);
+                    Model.AddConstr(RESIDUALDemand[n, t] == (node.NodalDemand(t, CC.TimeOffSet) - DemandShed[n, t] - NodalLossOfLoad[n, t]), "ResidualLoad_"+ n +"_" + t);
                 }
             }
         }

@@ -23,7 +23,7 @@ namespace CleanCommit
             double MaxDemand = 0;
             for (int t = 0; t < CC.TotalTime; t++)
             {
-                MaxDemand = Math.Max(MaxDemand, PS.Nodes.Sum(node => node.NodalDemand(t)));
+                MaxDemand = Math.Max(MaxDemand, PS.Nodes.Sum(node => node.NodalDemand(t,CC.TimeOffSet)));
             }
             MaxDemand *= 1.3;
             int timeSteps = CC.TotalTime;
@@ -36,7 +36,7 @@ namespace CleanCommit
             List<Dictionary<string, double>> store = new List<Dictionary<string, double>>();
             for (int t = 0; t < timeSteps; t++)
             {
-                demand.Add(PS.Nodes.Sum(node => node.NodalDemand(t)));
+                demand.Add(PS.Nodes.Sum(node => node.NodalDemand(t, CC.TimeOffSet)));
                 Dictionary<string, double> DispatchPerTechology = new Dictionary<string, double>();
                 //var time = PS.Times[t];
                 for (int u = 0; u < PS.Units.Count; u++)
@@ -73,7 +73,7 @@ namespace CleanCommit
 
             for (int t = 0; t < timeSteps; t++)
             {
-                demand.Add(PS.Nodes.Sum(node => node.NodalDemand(t)));
+                demand.Add(PS.Nodes.Sum(node => node.NodalDemand(t, CC.TimeOffSet)));
                 Dictionary<string, double> DispatchPerTechology = new Dictionary<string, double>();
                 //var time = PS.Times[t];
                 for (int u = 0; u < PS.Units.Count; u++)

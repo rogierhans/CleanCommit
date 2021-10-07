@@ -230,9 +230,8 @@ namespace CleanCommit
         }
         public void ExprimentFake(ConstraintConfiguration CC, string extra)
         {
-
+            for (int year = 1979; year < 2019; year++)
             {
-                int year = 1979;
                 foreach (var instance in TYDNPInstances)
                 {
                     string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC_WON\" + instance + "_" + year + ".uc";
@@ -259,8 +258,8 @@ namespace CleanCommit
                         output.ComputationTime };
                         var line = string.Join("\t", cells);
                         File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\FullExperimentFake.txt", line + "\n");
-                       // output.ToCSV(@"E:\UCCsv\" + PS.Name.Split('.').First() + "_" + extra + ".csv");
-                        //output.ToBin(@"E:\UCBin\" + PS.Name.Split('.').First() + "_" + extra + ".bin");
+                        output.ToCSV(@"E:\WindOn\UCCsv\" + PS.Name.Split('.').First() + "_" + extra + ".csv");
+                        output.ToBin(@"E:\WindOn\UCBin\" + PS.Name.Split('.').First() + "_" + extra + ".bin");
                         TS.Kill();
                     }
                 }

@@ -88,11 +88,11 @@ namespace CleanCommit.Instance
             Demand = values;
         }
 
-        public double NodalDemand(int time)
+        public double NodalDemand(int time, int timeOFFset)
         {
             if (Demand != null)
             {
-                return Demand[time % Demand.Count];
+                return Demand[(time + timeOFFset) % Demand.Count];
             }
             return 0;
         }

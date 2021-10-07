@@ -18,6 +18,12 @@ namespace CleanCommit.MIP
         public GRBVar LOLCost;
         public GRBVar LORCost;
 
+        public GRBVar[] GenerationCostPerTime;
+        public GRBVar[] CycleCostPerTime;
+        public GRBVar[] DRCostPerTime;
+        public GRBVar[] LOLCostPerTime;
+        public GRBVar[] LORCostPerTime;
+
         private readonly int totalNodes;
         private readonly int totalTime;
         private readonly int totalUnits;
@@ -30,7 +36,7 @@ namespace CleanCommit.MIP
         private readonly char Type;
 
         public GRBLinExpr AltObjective;
-        public Objective(PowerSystem ps, ConstraintConfiguration cc, GRBModel model, TightSolver solver, Variables vars)
+        public Objective(PowerSystem ps, ConstraintConfiguration cc, GRBModel model, Variables vars)
         {
             Model = model;
             PS = ps;
@@ -128,7 +134,6 @@ namespace CleanCommit.MIP
                         lolCost += Vars.NodalLossOfLoad[n, t] * PS.VOLL;
                     else
                         lolCost += Vars.NodalLossOfLoad[n, t] * PS.VOLL;
-
                 }
             }
             Model.AddConstr(LOLCost == lolCost, "");

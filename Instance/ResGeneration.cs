@@ -23,8 +23,8 @@ namespace CleanCommit.Instance
             //Console.WriteLine("*{0}*", name); Console.WriteLine("*{0}*", Name);
         }
 
-        public double GetValue(int t) {
-            return ResValues[t % ResValues.Count];
+        public double GetValue(int t, int timeOffset) {
+            return ResValues[(t+ timeOffset) % ResValues.Count];
         }
 
 

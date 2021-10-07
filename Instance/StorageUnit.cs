@@ -34,10 +34,10 @@ namespace CleanCommit.Instance
             Inflow = inflow;
         }
 
-        public double GetInflow(int t)
+        public double GetInflow(int t, int timeOffset)
         {
             if (Inflow.Count == 0) return 0;
-            return Inflow[t % Inflow.Count];
+            return Inflow[(t+ timeOffset) % Inflow.Count];
         }
         public string ToFile()
         {

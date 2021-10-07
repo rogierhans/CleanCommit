@@ -23,6 +23,7 @@ namespace CleanCommit.MIP
         public int NumVars;
         public int NumBinVars;
         public double[] LossOfReserve; // node x time
+        public double[,] P; // time x units
         public double[,] Dispatch; // time x units
         public double[,] Commit; // time x units
         public double[,] Start; // time x units
@@ -77,7 +78,6 @@ namespace CleanCommit.MIP
             NumVars = model.NumVars;
             NumBinVars = model.NumBinVars;
 
-            double[,] P; // time x units
             P = Get(vars.P);
             ReserveThermal = Get(vars.ReserveThermal);
             ReserveStorage = Get(vars.ReserveStorage);
@@ -145,7 +145,7 @@ namespace CleanCommit.MIP
             lines.AddRange(MArrayToString("NumVars", NumVars));
             lines.AddRange(MArrayToString("NumBinVars", NumBinVars));
             lines.AddRange(MArrayToString("LossOfReserve", LossOfReserve));
-            //  lines.AddRange(MArrayToString("P", P));
+            lines.AddRange(MArrayToString("P", P));
             lines.AddRange(MArrayToString("Dispatch", Dispatch));
             lines.AddRange(MArrayToString("Commit", Commit));
             lines.AddRange(MArrayToString("Start", Start));

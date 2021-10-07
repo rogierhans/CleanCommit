@@ -32,7 +32,7 @@ namespace CleanCommit.MIP
                     {
                         totalReserve += (Variable.ReserveStorage[t, u, rIndex]);
                     }
-                    var reservequirement = CC.Reserves[rIndex].GetReserve(PS, t);
+                    var reservequirement = CC.Reserves[rIndex].GetReserve(PS, t, CC.TimeOffSet);
                     Console.WriteLine("{0} {1} {2}", t, rIndex, reservequirement);
                     Model.AddConstr(totalReserve + Variable.LossOfReserve[t] >= reservequirement, "Reserve_" + t);
                 }

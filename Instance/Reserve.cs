@@ -26,11 +26,11 @@ namespace CleanCommit.Instance
             OfSolar = ofSolar;
         }
 
-        public double GetReserve(PowerSystem PS, int timestep)
+        public double GetReserve(PowerSystem PS, int timestep, int timeOFFset)
         {
-            var totalDemand = PS.Nodes.Sum(node => node.NodalDemand(timestep));
-            var totalWind = PS.ResGenerations.Where(RES => RES.Type == "WON" || RES.Type == "WOF").Sum(RES => RES.GetValue(timestep));
-            var totalSolar = PS.ResGenerations.Where(RES => RES.Type == "PV").Sum(RES => RES.GetValue(timestep));
+            var totalDemand = PS.Nodes.Sum(node => node.NodalDemand(timestep,timeOFFset));
+            var totalWind = PS.ResGenerations.Where(RES => RES.Type == "WON" || RES.Type == "WOF").Sum(RES => RES.GetValue(timestep, timeOFFset));
+            var totalSolar = PS.ResGenerations.Where(RES => RES.Type == "PV").Sum(RES => RES.GetValue(timestep, timeOFFset));
             return (OfDemand * totalDemand + OfSolar * totalSolar + OfWind * totalWind + FixedValue) ;
         }
     }
