@@ -43,6 +43,7 @@ namespace CleanCommit.MIP
             GRBLinExpr consumption = new GRBLinExpr();
             consumption += Variable.RESIDUALDemand[n, t];
             consumption += GetNodalTotalCharge(n, t);
+           // consumption += Variable.P2GGeneration[n, t];
 
             NodalPowerBalance[n, t] = Model.AddConstr(generation == consumption, "NodalPowerBalance" + t);
         }

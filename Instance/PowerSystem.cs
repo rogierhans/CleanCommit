@@ -23,6 +23,7 @@ namespace CleanCommit.Instance
         public double VOLL = 10000;
         public double VOLR = 1000;
         public List<double> Reserves;
+        public double P2GYearlyDemand = 1400 * 1000 * 1000;
        // private double RatioReserveDemand = 0;//0.01;
 
         public double DRSCost = 300;

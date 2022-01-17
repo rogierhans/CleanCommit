@@ -20,6 +20,7 @@ namespace CleanCommit.Instance
         public List<ResGeneration> RES;
         public List<double> Demand;
         public double DemandResonsePotential;
+        public double P2GCapacity;
         //public List<double> SpinningReservesUP;
         //public List<double> SpinningReservesDown;
 

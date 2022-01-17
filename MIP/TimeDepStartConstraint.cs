@@ -29,9 +29,9 @@ namespace CleanCommit.MIP
             ForEachTimeStepAndGenerator((t, u) =>
             {
                 var sum = new GRBLinExpr();
-                for (int e = 0; e < Variable.StartCostIntervall[0, u].Count(); e++)
+                for (int e = 0; e < PS.Units[0].StartInterval.Length; e++)
                 {
-                    sum += Variable.StartCostIntervall[t, u][e];
+                    sum += Variable.StartCostIntervall[t, u,e];
                 }
                 Model.AddConstr(Variable.Start[t, u] == sum, "StartCostContraint4.25" + t + "u:" + u);
             });
@@ -42,7 +42,7 @@ namespace CleanCommit.MIP
             ForEachTimeStepAndGenerator((t, u) =>
             {
                 var unit = PS.Units[u];
-                for (int e = 0; e < unit.StartInterval.Length - 1; e++)
+                for (int e = 0; e < PS.Units[0].StartInterval.Length - 1; e++)
                 {
                     var sum = new GRBLinExpr();
                     int from = t - unit.StartInterval[e + 1];
@@ -52,7 +52,7 @@ namespace CleanCommit.MIP
                     {
                         sum += Variable.Stop[t2, u];
                     }
-                    Model.AddConstr(Variable.StartCostIntervall[t, u][e] <= sum, "StartCostContraint4.26" + t + "u:" + u + "e" + e);
+                    Model.AddConstr(Variable.StartCostIntervall[t, u,e] <= sum, "StartCostContraint4.26" + t + "u:" + u + "e" + e);
                 }
             });
         }

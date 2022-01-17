@@ -13,6 +13,7 @@ namespace CleanCommit
     class CFMaximization
     {
         public static string[] TYDNPInstances = new string[] { "DE_2040", "GA_2040", "NT_2040", "GA_2030", "NT_2030", "DE_2030" };
+        public static string[] TYDNPInstances2040 = new string[] { "DE_2040", "GA_2040", "NT_2040" };
         public void AllTests(string Gtype, double fraction,int timeHorizon, int offSet)
         {
 
@@ -33,24 +34,40 @@ namespace CleanCommit
                         TightSolver TS = new TightSolver(PS, CC);
                         TS.ConfigureModel();
                         var output = TS.CFOptimzation(36000, fraction, Gtype);
-                        //Console.ReadLine();
-                        //List<object> cells = new List<object>() {
-                        //year,
-                        //PS.ToString(),
-                        //CC.ToString(),
-                        //output.LOLCounter,
-                        //output.DRCounter,
-                        //output.GurobiCost,
-                        //output.GurobiCostLOL,
-                        //output.GurobiCostLOR,
-                        //output.GurobiCostDR,
-                        //output.GurobiCostGeneration,
-                        //output.GurobiCostCycle,
-                        //output.ComputationTime };
-                        // var line = string.Join("\t", cells);
-                        //  File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\FullExperiment.txt", line + "\n");
-                        //output.ToCSV(@"E:\UCCsv\" + PS.Name.Split('.').First() + "_" + "CF" + ".csv");
-                        //output.ToBin(@"E:\UCBin\" + PS.Name.Split('.').First() + "_" + "CF"+ ".bin");
+                        TS.Kill();
+                    }
+                }
+            }
+        }
+        public void AllTestsLOL(double fraction, int timeHorizon, int offSet)
+        {
+
+            var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
+            {
+               // Adequacy = true
+            };
+            CC.SetLimits(offSet, timeHorizon);
+            for (int year = 1979; year <= 2019; year++)
+            {
+                foreach (var instance in TYDNPInstances2040)
+                {
+                    string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC_WON\" + instance + "_" + year + ".uc";
+                    PowerSystem PS = IOUtils.GetPowerSystem(filename);
+                    Run(); Run2();
+                    void Run()
+                    {
+                        TightSolver TS = new TightSolver(PS, CC);
+                        TS.ConfigureModel();
+                        Action<Objective> test = ob => ob.LOLMaxQuadatric();
+                        var output = TS.LOLOptimzation(600, fraction,"LOLMax", test);
+                        TS.Kill();
+                    }
+                    void Run2()
+                    {
+                        TightSolver TS = new TightSolver(PS, CC);
+                        TS.ConfigureModel();
+                        Action<Objective> test = ob => ob.LOLObjective();
+                        var output = TS.LOLOptimzation(600, fraction, "LOLMin", test);
                         TS.Kill();
                     }
                 }

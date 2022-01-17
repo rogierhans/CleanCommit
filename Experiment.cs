@@ -199,6 +199,7 @@ namespace CleanCommit
                 {
                     string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC\" + instance + "_" + year + ".uc";
                     PowerSystem PS = IOUtils.GetPowerSystem(filename);
+ 
                     Run();
                     void Run()
                     {
@@ -230,13 +231,18 @@ namespace CleanCommit
         }
         public void ExprimentFake(ConstraintConfiguration CC, string extra)
         {
-            for (int year = 1979; year < 2019; year++)
+            for (int year = 2003; year < 2019; year++)
             {
                 foreach (var instance in TYDNPInstances)
                 {
                     string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC_WON\" + instance + "_" + year + ".uc";
                     PowerSystem PS = IOUtils.GetPowerSystem(filename);
+                    //Console.WriteLine(string.Join("\t", PS.StorageUnits.First(x => x.Name == "STO_SE01").Inflow));
+                    //Console.WriteLine(PS.StorageUnits.First(x => x.Name == "STO_SE01").ToFile());
+                    //Console.ReadLine();
+                    //Console.ReadLine();
                     Run();
+                    throw new Exception();
                     void Run()
                     {
                         TightSolver TS = new TightSolver(PS, CC);

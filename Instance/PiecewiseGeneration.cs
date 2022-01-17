@@ -61,7 +61,7 @@ namespace CleanCommit
             {
                 var startpoint = cumulativeLength;
                 var endpoint = cumulativeLength + PiecewiseLengths[s];
-                PiecewiseSlope[s] = GetSlope(startpoint, endpoint);
+                PiecewiseSlope[s] = GetSlopeBetweenPoints(startpoint, endpoint);
                 cumulativeLength += PiecewiseLengths[s];
             }
             MonotonicityCheck(PiecewiseSlope);
@@ -94,7 +94,7 @@ namespace CleanCommit
             }
         }
 
-        private double GetSlope(double startP, double endP)
+        private double GetSlopeBetweenPoints(double startP, double endP)
         {
             double startCost = GetCost(startP);
             double endCost = GetCost(endP);
@@ -102,10 +102,6 @@ namespace CleanCommit
             return (endP - startP ==0)?0:(endCost - startCost) / (endP - startP);
         }
 
-        private double GetSlope(double p)
-        {
-            return Unit.B + Unit.C * p * p;
-        }
 
         public double GetCost(double p)
         {

@@ -18,12 +18,6 @@ namespace CleanCommit.MIP
         public GRBVar LOLCost;
         public GRBVar LORCost;
 
-        public GRBVar[] GenerationCostPerTime;
-        public GRBVar[] CycleCostPerTime;
-        public GRBVar[] DRCostPerTime;
-        public GRBVar[] LOLCostPerTime;
-        public GRBVar[] LORCostPerTime;
-
         private readonly int totalNodes;
         private readonly int totalTime;
         private readonly int totalUnits;
@@ -67,6 +61,17 @@ namespace CleanCommit.MIP
             {
                 CurrentObjective += GenerationCost + CycleCost + LOLCost + LORCost + DRCost;
             }
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int l = 0; l < PS.LinesAC.Count; l++)
+                {
+                    var transCostVar = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "");
+                    Model.AddConstr(transCostVar >= Vars.TransmissionFlowAC[l, t],"");
+                    Model.AddConstr(transCostVar >= -Vars.TransmissionFlowAC[l, t], "");
+                    CurrentObjective += transCostVar;// Vars.TransmissionFlowAC[l,t];
+                }
+            }
+
             Model.SetObjective(CurrentObjective, GRB.MINIMIZE);
         }
 
@@ -120,6 +125,34 @@ namespace CleanCommit.MIP
         }
 
 
+        GRBLinExpr LOLObjectiveExpresion;
+        public void LOLObjective()
+        {
+            LOLObjectiveExpresion = new GRBLinExpr();
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int n = 0; n < totalNodes; n++)
+                {
+                    GRBVar hasLOL = Model.AddVar(0, 1, 0.0, GRB.BINARY, "");
+                    Model.AddConstr(Vars.NodalLossOfLoad[n, t] <= PS.Nodes[n].NodalDemand(t, CC.TimeOffSet) * hasLOL, "LOLMinConstraint");
+                    LOLObjectiveExpresion += hasLOL;
+                }
+            }
+            Model.SetObjective(LOLObjectiveExpresion, GRB.MINIMIZE);
+        }
+
+        public void LOLMaxQuadatric()
+        {
+            var LOLQuad = new GRBQuadExpr();
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int n = 0; n < totalNodes; n++)
+                {
+                    LOLQuad.Add(Vars.NodalLossOfLoad[n, t] * Vars.NodalLossOfLoad[n, t]);
+                }
+            }
+            Model.SetObjective(LOLQuad, GRB.MINIMIZE);
+        }
 
         private void LinkLossOfLoad()
         {
@@ -179,6 +212,7 @@ namespace CleanCommit.MIP
             {
                 for (int n = 0; n < totalNodes; n++)
                 {
+
                     cost += Vars.DemandShed[n, t] * PS.DRSCost;
                 }
             }
@@ -203,9 +237,9 @@ namespace CleanCommit.MIP
                 ApplyFunction((t, u) =>
                 {
                     Unit unit = PS.Units[u];
-                    for (int e = 0; e < unit.StartInterval.Length; e++)
+                    for (int e = 0; e < PS.Units[0].StartInterval.Length; e++)
                     {
-                        cycleCost += Vars.StartCostIntervall[t, u][e] * unit.StartCostInterval[e];
+                        cycleCost += Vars.StartCostIntervall[t, u, e] * unit.StartCostInterval[e];
                     }
                 });
             }

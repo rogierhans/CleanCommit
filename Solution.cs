@@ -39,18 +39,26 @@ namespace CleanCommit.MIP
 
         public double[,] NodalLossOfLoad; // node x time
         public double[,] RESIDUALDemand; // node x time
-        public double[,] DemandResponse; // node x time;
+        public double[,] DemandShed; // node x time;
         public double[,] NodalInjectionAC; // node x time
         public double[,] NodalInjectionDC; // node x time
+        public double[,] P2GGeneration;//node x time
         public double[,] NodalShadowPrice; // node x time
         public double[,] LineUpperLimitShadowPrice; // lines x time
         public double[,] LineLowerLimitShadowPrice; // lines x time
         public double[,,] ReserveThermal; // time x units x reservetype;
         public double[,,] ReserveStorage; // time x Sunits x reservetype;
+
+        public double[,,] Piecewise; // time x units x segments
+        public PiecewiseGeneration[] PiecewiseGeneration;
+        public double[,,] StartCostIntervall;
+
         public int DRCounter = 0;
         public int LOLCounter = 0;
         public PowerSystem PS;
         public ConstraintConfiguration CC;
+
+
 
         static public Solution GetFromBin(string filename)
         {
@@ -61,8 +69,11 @@ namespace CleanCommit.MIP
         {
             BinarySerialization.WriteToBinaryFile<Solution>(filename, this);
         }
+        public Solution() { }
+
         public Solution(GRBModel model, Objective objective, Variables vars, PowerSystem ps, ConstraintConfiguration cc, TransmissionConstraint TC, PowerBalanceContraint PBC)
         {
+            PiecewiseGeneration = vars.PiecewiseGeneration;
             PS = ps;
             CC = cc;
             GurobiCost = objective.CurrentObjective.Value;
@@ -81,13 +92,14 @@ namespace CleanCommit.MIP
             P = Get(vars.P);
             ReserveThermal = Get(vars.ReserveThermal);
             ReserveStorage = Get(vars.ReserveStorage);
-            //  Piecewise = Get(vars.Piecewise);
+            Piecewise = Get(vars.Piecewise);
             Commit = Get(vars.Commit);
             Start = Get(vars.Start);
             Stop = Get(vars.Stop);
             RESDispatch = Get(vars.RESDispatch);
             TransmissionFlowAC = Get(vars.TransmissionFlowAC);
             TransmissionFlowDC = Get(vars.TransmissionFlowDC);
+            StartCostIntervall = Get(vars.StartCostIntervall);
             NodeVoltAngle = Get(vars.NodeVoltAngle);
             Charge = Get(vars.Charge);
             Discharge = Get(vars.Discharge);
@@ -95,16 +107,41 @@ namespace CleanCommit.MIP
             LossOfReserve = Get(vars.LossOfReserve);
             NodalLossOfLoad = Get(vars.NodalLossOfLoad);
             RESIDUALDemand = Get(vars.RESIDUALDemand);
-            DemandResponse = Get(vars.DemandShed);
+            DemandShed = Get(vars.DemandShed);
             NodalInjectionAC = Get(vars.NodalInjectionAC);
             NodalInjectionDC = Get(vars.NodalInjectionDC);
+            P2GGeneration = Get(vars.P2GGeneration);
             if (CC.Relax)
             {
-                NodalShadowPrice = Get(PBC.NodalPowerBalance);
-                LineLowerLimitShadowPrice = Get(TC.ACFlowLowerLimits);
-                LineUpperLimitShadowPrice = Get(TC.ACFlowUpperLimits);
+                NodalShadowPrice = Get(PBC.NodalPowerBalance,model);
+                LineLowerLimitShadowPrice = Get(TC.ACFlowLowerLimits, model);
+                LineUpperLimitShadowPrice = Get(TC.ACFlowUpperLimits, model);
             }
 
+            CalculateDispatch();
+            CalculateLOL();
+        }
+
+
+
+        private void CalculateLOL()
+        {
+            for (int t = 0; t < NodalLossOfLoad.GetLength(1); t++)
+            {
+                bool LossOfLoad = false;
+                bool DR = false;
+                for (int n = 0; n < NodalLossOfLoad.GetLength(0); n++)
+                {
+                    LossOfLoad |= NodalLossOfLoad[n, t] > 0.01;
+                    DR |= DemandShed[n, t] > 0.01;
+                }
+                if (LossOfLoad) LOLCounter++;
+                if (DR) DRCounter++;
+            }
+        }
+
+        private void CalculateDispatch()
+        {
             Dispatch = new double[P.GetLength(0), P.GetLength(1)];
             for (int t = 0; t < P.GetLength(0); t++)
             {
@@ -113,18 +150,6 @@ namespace CleanCommit.MIP
                     var unit = PS.Units[g];
                     Dispatch[t, g] = P[t, g] + unit.pMin * Commit[t, g];
                 }
-            }
-            for (int t = 0; t < NodalLossOfLoad.GetLength(1); t++)
-            {
-                bool LossOfLoad = false;
-                bool DR = false;
-                for (int n = 0; n < NodalLossOfLoad.GetLength(0); n++)
-                {
-                    LossOfLoad |= NodalLossOfLoad[n, t] > 0.01;
-                    DR |= DemandResponse[n, t] > 0.01;
-                }
-                if (LossOfLoad) LOLCounter++;
-                if (DR) DRCounter++;
             }
         }
 
@@ -159,9 +184,10 @@ namespace CleanCommit.MIP
             lines.AddRange(MArrayToString("Storage", Storage));
             lines.AddRange(MArrayToString("NodalLossOfLoad", NodalLossOfLoad));
             lines.AddRange(MArrayToString("RESIDUALDemand", RESIDUALDemand));
-            lines.AddRange(MArrayToString("DemandResponse", DemandResponse));
+            lines.AddRange(MArrayToString("DemandResponse", DemandShed));
             lines.AddRange(MArrayToString("NodalInjectionAC", NodalInjectionAC));
             lines.AddRange(MArrayToString("NodalInjectionDC", NodalInjectionDC));
+            lines.AddRange(MArrayToString("P2GGeneration", P2GGeneration));
             if (CC.Relax)
             {
                 lines.AddRange(MArrayToString("NodalShadowPrice", NodalShadowPrice));
@@ -267,14 +293,16 @@ namespace CleanCommit.MIP
             }
             return results;
         }
-        private double[,] Get(GRBConstr[,] var)
+        private double[,] Get(GRBConstr[,] var, GRBModel model)
         {
             var results = new double[var.GetLength(0), var.GetLength(1)];
-            for (int i = 0; i < var.GetLength(0); i++)
-            {
-                for (int j = 0; j < var.GetLength(1); j++)
-                    results[i, j] = var[i, j].Pi;
-            }
+            if (CC.Relax && !(model.IsMIP == 1))
+                for (int i = 0; i < var.GetLength(0); i++)
+                {
+                    for (int j = 0; j < var.GetLength(1); j++)
+                        results[i, j] = var[i, j].Pi;
+                }
+
             return results;
         }
         private double[,,] Get(GRBVar[,,] var)

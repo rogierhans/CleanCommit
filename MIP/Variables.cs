@@ -13,7 +13,7 @@ namespace CleanCommit.MIP
         public GRBVar[,,] ReserveThermal; // time x units x reservetype;
         public GRBVar[,,] ReserveStorage; // time x Sunits x reservetype;
         public GRBVar[,,] Piecewise; // time x units x segments
-
+        public PiecewiseGeneration[] PiecewiseGeneration;
         public GRBVar[,] Commit; // time x units
         public GRBVar[,] Start; // time x units
         public GRBVar[,] Stop; // time x units
@@ -33,8 +33,9 @@ namespace CleanCommit.MIP
      //   public GRBVar[,] DemandShift; // node x time
         public GRBVar[,] RESIDUALDemand;
         //public GRBVar[,,] NodalRESGeneration;
-        public List<GRBVar>[,] StartCostIntervall;
-        public PiecewiseGeneration[] PiecewiseGeneration;
+        public GRBVar[,,] StartCostIntervall;
+
+        public GRBVar[,] P2GGeneration;//node x time
 
         protected int totalNodes;
         protected int totalTime;
@@ -118,7 +119,7 @@ namespace CleanCommit.MIP
             AddTransmissionVariables();
             Console.WriteLine("AddNodalVariables");
             AddNodalVariables();
-            if (CC.TimeDependantStartUpCost)
+            //if (CC.TimeDependantStartUpCost)
             {
                 AddTimeDependantStartUpCostVariables();
             }
@@ -173,6 +174,9 @@ namespace CleanCommit.MIP
                 {
                     var RES = PS.ResGenerations[r];
                     var maxRES = RES.GetValue(t,CC.TimeOffSet);
+                    if (CC.IngorneP2GRes && RES.Name.Split('_').Count() > 1 && RES.Name.Split('_')[1] == "P2G") {
+                        maxRES = 0;
+                    }
                     RESDispatch[t, r] = Model.AddVar(0, maxRES, 0.0, GRB.CONTINUOUS, "RES_" + t + "_" + r);
                 }
             }
@@ -195,14 +199,13 @@ namespace CleanCommit.MIP
 
         public void AddTimeDependantStartUpCostVariables()
         {
-            StartCostIntervall = new List<GRBVar>[totalTime, totalUnits];
+            StartCostIntervall = new GRBVar[totalTime, totalUnits, PS.Units[0].StartInterval.Length];
             ApplyFunction((t, u) =>
             {
                 Unit unit = PS.Units[u];
-                StartCostIntervall[t, u] = new List<GRBVar>();
                 for (int e = 0; e < unit.StartInterval.Length; e++)
                 {
-                    StartCostIntervall[t, u].Add(Model.AddVar(0.0, 1.0, 0.0, Type, "SCI_" + u + "_" + t + "_" + e));
+                    StartCostIntervall[t, u,e] = (Model.AddVar(0.0, 1.0, 0.0, Type, "SCI_" + u + "_" + t + "_" + e));
                 }
             });
         }
@@ -213,6 +216,7 @@ namespace CleanCommit.MIP
             LossOfReserve = new GRBVar[totalTime];
             NodalInjectionAC = new GRBVar[totalNodes, totalTime];
             NodalInjectionDC = new GRBVar[totalNodes, totalTime];
+            P2GGeneration = new GRBVar[totalNodes, totalTime];
             RESIDUALDemand = new GRBVar[totalNodes, totalTime];
             for (int t = 0; t < totalTime; t++)
             {
@@ -223,9 +227,9 @@ namespace CleanCommit.MIP
                     RESIDUALDemand[n, t] = Model.AddVar(0, node.NodalDemand(t, CC.TimeOffSet), 0.0, GRB.CONTINUOUS, "ResidualDemand" + n + "_" + t);
                     NodalLossOfLoad[n, t] = Model.AddVar(0, node.NodalDemand(t,CC.TimeOffSet), 0.0, GRB.CONTINUOUS, "NodalLoL_" + n + "_" + t);
                     DemandShed[n, t] = Model.AddVar(0, node.DemandResonsePotential, 0.0, GRB.CONTINUOUS, "DemandResponse" + n + "_" + t);
-                    NodalInjectionAC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionAC_" + t);
-                    NodalInjectionDC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionDC_" + t);
-
+                    NodalInjectionAC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionAC_" + n + "_" + t );
+                    NodalInjectionDC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionDC_" + n + "_" + t);
+                    P2GGeneration[n,t] = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "P2G_" + n + "_" + t);
                     Model.AddConstr(RESIDUALDemand[n, t] == (node.NodalDemand(t, CC.TimeOffSet) - DemandShed[n, t] - NodalLossOfLoad[n, t]), "ResidualLoad_"+ n +"_" + t);
                 }
             }

@@ -99,6 +99,9 @@ namespace CleanCommit
 
             var ReserveConstraint = new ReserveConstraint(PS, CC, model, Variables);
             ReserveConstraint.AddConstraint();
+
+            //var P2G = new P2GConstraint(PS, CC, model, Variables);
+            //P2G.AddConstraint();
         }
 
         public void Kill()
@@ -162,6 +165,57 @@ namespace CleanCommit
 
             return solution2;
         }
+
+        public Solution LOLOptimzation(int TimeLimit, double fraction, string folderName, Action<Objective> a )
+        {
+            string extraComment = "";
+            string RootFolder = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\2020Results\" + folderName + @"\";
+            string Folder = RootFolder ;
+            Directory.CreateDirectory(Folder);
+
+            //Solve Original Model
+            model.Parameters.TimeLimit = TimeLimit;
+            model.Optimize();
+            Solution solution1 = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
+            solution1.ToCSV(Folder + @"\OG_" + PS + "_" + CC.TimeOffSet);
+            Solution solution2 = solution1;
+            extraComment = "skip";
+            if (solution2.LOLCounter > 0)
+            {
+                // optimize <generatorType> CF while staying <fraction> within the original model objective value
+                model.AddConstr(Objective.CurrentObjective <= Math.Ceiling(solution1.GurobiCost * fraction), "");
+                a(Objective);
+                model.Optimize();
+                extraComment = model.Status.ToString();
+                if (model.Status == GRB.Status.NUMERIC) {
+                    extraComment += "_nummeric";
+                }
+                else if(model.Status == GRB.Status.OPTIMAL)
+                    solution2 = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
+            }
+            solution2.ToCSV(Folder + @"\" + GRB.MINIMIZE + "_" + PS + "_" + CC.TimeOffSet);
+
+
+            int year = int.Parse(PS.ToString().Split('_')[2]);
+            DateTime dt = new DateTime(year, 1, 1);
+            dt = dt.AddHours(CC.TimeOffSet);
+            File.AppendAllText(RootFolder + @"\text.txt",
+                +fraction + "\t"
+                + PS + "\t"
+                + year + "\t" +
+                +CC.TimeOffSet + "\t"
+                + dt.ToString() + "\t"
+                + solution2.ComputationTime + "\t"
+                + solution1.GurobiCost + "\t"
+                + solution2.GurobiCost + "\t"
+                + solution1.LOLCounter + "\t"
+                + solution2.LOLCounter + "\t"
+                + extraComment + "\t"
+                + "\n");
+
+            return solution2;
+        }
+
 
         public SolverOutput CO2Optimzation(int TimeLimit, double fraction, int GRBMINMAXMode)
         {

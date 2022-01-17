@@ -16,7 +16,7 @@ namespace CleanCommit.MIP
         protected int totalLinesAC;
         protected int totalLinesDC;
         protected int totalStorageUnits;
-        protected int totatRESTypes;
+        protected int totalRESUnits;
         protected int totalPiecewiseSegments;
 
         protected GRBModel Model;
@@ -36,7 +36,7 @@ namespace CleanCommit.MIP
             totalLinesDC = PS.LinesDC.Count;
             totalLinesAC = PS.LinesAC.Count;
             totalStorageUnits = PS.StorageUnits.Count;
-            totatRESTypes = PS.ResGenerations.Count;
+            totalRESUnits = PS.ResGenerations.Count;
             totalPiecewiseSegments =CC.PiecewiseSegments;
             PDTF = PS.PDTF;
             Variable = variable;

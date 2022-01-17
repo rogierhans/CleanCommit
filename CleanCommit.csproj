@@ -59,6 +59,7 @@
     <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BuildSolutionFromPartialSolutions.cs" />
     <Compile Include="CFMaximization.cs" />
     <Compile Include="Experiment.cs" />
     <Compile Include="Instance\PTDFCalculator2.cs" />
@@ -66,6 +67,8 @@
     <Compile Include="MIP\CallBackTrans.cs" />
     <Compile Include="MIP\Objective.cs" />
     <Compile Include="MIP\OverlapConstraint.cs" />
+    <Compile Include="MIP\P2GConstraint.cs" />
+    <Compile Include="MIP\RecalcSolution.cs" />
     <Compile Include="MIP\ReserveConstraint.cs" />
     <Compile Include="MIP\RollingSolver.cs" />
     <Compile Include="Solution.cs" />

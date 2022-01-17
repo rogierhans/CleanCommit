@@ -6,37 +6,31 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 using CleanCommit.Instance;
-
+using CleanCommit.MIP;
 namespace CleanCommit
 {
     class Program
     {
         static void Main(string[] args)
-        {
+        { var Experiment = new CFMaximization();
 
-
-
-
-
-            int timehorizon = 24;
-            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
+            for (int dayOffset = 0; dayOffset < 365; dayOffset += 30)
             {
-                Adequacy = true
-            };
-            CC.SetLimits(0, timehorizon);
-            //string filename = @"C:\Users\Rogier\Google Drive\Data\Github\GA10.uc";
-            string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC\" + "GA_2040" + "_" + 1980 + ".uc";
-            PowerSystem PS = IOUtils.GetPowerSystem(filename);
-            var newCC = CC.Copy();
-            newCC.Adequacy = false;
-            newCC.MinUpMinDown = true;
-            newCC.RampingLimits = true;
-            newCC.Relax = true;
-            TightSolver TS = new TightSolver(PS, CC);
-            TS.ConfigureModel();
-            var sol = TS.NewSolve(36000, 1);
+                int hourOffset = dayOffset * 24;
+                Experiment.AllTestsLOL(1, 72, hourOffset);
+            }
+            // RunOldRoller();
 
-            new RollingSolver(sol, newCC, 10,5);
+            //string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC_WON\" + "DE_2040" + "_" + 1979 + ".uc";
+            //foreach (var filename in new DirectoryInfo(@"C:\Users\4001184\OneDrive - Universiteit Utrecht\ACDC_WON").GetFiles().ToList().OrderByDescending(x => int.Parse(x.Name.Split('_')[1])).Select(x => x.FullName))
+            //{
+            //    string name = filename.Split('\\').Last().Split('.').First();
+            //    Console.WriteLine(name);
+            //    var doneNames = new DirectoryInfo(@"E:\Temp2").GetFiles().ToList().OrderByDescending(x => int.Parse(x.Name.Split('_')[1])).Select(x => x.Name.Split('\\').Last().Split('.').First());
+
+            //    if (!doneNames.Contains(name))
+            //  RunnerRolling(filename);
+            //}
 
             return;
 
@@ -51,6 +45,64 @@ namespace CleanCommit
             var exp = new Experiment();
             exp.AllTests();
 
+        }
+
+        private static void RunOldRoller() {
+            var binfile = @"E:\Temp2\DE_2040_1979.bin";
+            var sol = Solution.GetFromBin(binfile);
+            var name = sol.PS.Name;
+            int timehorizon = 24 * 7;
+            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
+            {
+                Adequacy = true
+            };
+            CC.SetLimits(0, timehorizon);
+            //string filename = @"C:\Users\Rogier\Google Drive\Data\Github\GA10.uc";
+            PowerSystem PS = sol.PS;
+            var newCC = CC.Copy();
+            //newCC.Adequacy = true;
+            newCC.MinUpMinDown = true;
+            newCC.RampingLimits = true;
+            newCC.Relax = true;
+
+            var rollingSolver = new RollingSolver(sol, newCC);
+
+            var rollingSolution = rollingSolver.Roll(36, 12,12, name);
+            rollingSolver.Kill();
+        }
+
+        private static void RunnerRolling(string filename)
+        {
+            string name = filename.Split('\\').Last().Split('.').First();
+            Console.WriteLine(name);
+            int timehorizon = 8760;
+            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
+            {
+                Adequacy = true
+            };
+            CC.SetLimits(0, timehorizon);
+            //string filename = @"C:\Users\Rogier\Google Drive\Data\Github\GA10.uc";
+            PowerSystem PS = IOUtils.GetPowerSystem(filename);
+            var newCC = CC.Copy();
+            newCC.Adequacy = false;
+            //newCC.MinUpMinDown = true;
+            //newCC.RampingLimits = true;
+            //newCC.Relax = true;
+            TightSolver TS = new TightSolver(PS, CC);
+
+            TS.ConfigureModel();
+            var sol = TS.NewSolve(36000, 1);
+            TS.Kill();
+            sol.ToCSV(@"E:\Temp2\" + name + ".csv");
+            sol.ToBin(@"E:\Temp2\" + name + ".bin");
+            // var recalc = new RecalcSolution(sol);
+            //Console.WriteLine("total Cost:{0} {1} {2} {3} {4} {5}", recalc.TotalCost, recalc.GenerationCost,recalc.CycleCost, recalc.DRCost , recalc.LOLCost, recalc.LORCost );
+            //Console.WriteLine("total Cost:{0} {1} {2} {3} {4} {5}", sol.GurobiCost, sol.GurobiCostGeneration,sol.GurobiCostCycle, sol.GurobiCostDR , sol.GurobiCostLOL, sol.GurobiCostLOR);
+            //  Console.ReadLine();
+            var rollingSolver = new RollingSolver(sol, newCC);
+
+            var rollingSolution = rollingSolver.Roll(240, 120,120, name);
+            rollingSolver.Kill();
         }
 
         private static void CFMaximazation()
