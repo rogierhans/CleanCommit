@@ -39,15 +39,12 @@ namespace CleanCommit
                 }
             }
         }
-        public void AllTestsLOL(double fraction, int timeHorizon, int offSet)
+        public void AllTestsLOL(ConstraintConfiguration CC, double fraction, int timeHorizon, int offSet, string name )
         {
 
-            var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
-            {
-               // Adequacy = true
-            };
+
             CC.SetLimits(offSet, timeHorizon);
-            for (int year = 1979; year <= 2019; year++)
+            for (int year = 1979; year <= 2019 -30; year++)
             {
                 foreach (var instance in TYDNPInstances2040)
                 {
@@ -59,7 +56,7 @@ namespace CleanCommit
                         TightSolver TS = new TightSolver(PS, CC);
                         TS.ConfigureModel();
                         Action<Objective> test = ob => ob.LOLMaxQuadatric();
-                        var output = TS.LOLOptimzation(600, fraction,"LOLMax", test);
+                        var output = TS.LOLOptimzation(600, fraction,"LOLMax_" + name, test);
                         TS.Kill();
                     }
                     void Run2()
@@ -67,7 +64,7 @@ namespace CleanCommit
                         TightSolver TS = new TightSolver(PS, CC);
                         TS.ConfigureModel();
                         Action<Objective> test = ob => ob.LOLObjective();
-                        var output = TS.LOLOptimzation(600, fraction, "LOLMin", test);
+                        var output = TS.LOLOptimzation(600, fraction, "LOLMin_" + name, test);
                         TS.Kill();
                     }
                 }

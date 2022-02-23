@@ -12,30 +12,41 @@ namespace CleanCommit
     class Program
     {
         static void Main(string[] args)
-        { var Experiment = new CFMaximization();
 
-            for (int dayOffset = 0; dayOffset < 365; dayOffset += 30)
-            {
-                int hourOffset = dayOffset * 24;
-                Experiment.AllTestsLOL(1, 72, hourOffset);
-            }
-            // RunOldRoller();
 
-            //string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC_WON\" + "DE_2040" + "_" + 1979 + ".uc";
-            //foreach (var filename in new DirectoryInfo(@"C:\Users\4001184\OneDrive - Universiteit Utrecht\ACDC_WON").GetFiles().ToList().OrderByDescending(x => int.Parse(x.Name.Split('_')[1])).Select(x => x.FullName))
+        {
+            //LongMaxTest();
+
+            ////return;
             //{
-            //    string name = filename.Split('\\').Last().Split('.').First();
-            //    Console.WriteLine(name);
-            //    var doneNames = new DirectoryInfo(@"E:\Temp2").GetFiles().ToList().OrderByDescending(x => int.Parse(x.Name.Split('_')[1])).Select(x => x.Name.Split('\\').Last().Split('.').First());
+            //    var Experiment = new CFMaximization();
 
-            //    if (!doneNames.Contains(name))
-            //  RunnerRolling(filename);
+            //    for (int dayOffset = 0; dayOffset < 365; dayOffset += 30)
+            //    {
+            //        var adeq = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
+            //        {
+            //             Adequacy = true
+            //        };
+            //        int hourOffset = dayOffset * 24;
+            //        Experiment.AllTestsLOL(adeq,1, 24 * 14, hourOffset, "A");
+            //    }
+            //    // RunOldRoller();
+
+            //    //string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC_WON\" + "DE_2040" + "_" + 1979 + ".uc";
+            //    //foreach (var filename in new DirectoryInfo(@"C:\Users\4001184\OneDrive - Universiteit Utrecht\ACDC_WON").GetFiles().ToList().OrderByDescending(x => int.Parse(x.Name.Split('_')[1])).Select(x => x.FullName))
+            //    //{
+            //    //    string name = filename.Split('\\').Last().Split('.').First();
+            //    //    Console.WriteLine(name);
+            //    //    var doneNames = new DirectoryInfo(@"E:\Temp2").GetFiles().ToList().OrderByDescending(x => int.Parse(x.Name.Split('_')[1])).Select(x => x.Name.Split('\\').Last().Split('.').First());
+
+            //    //    if (!doneNames.Contains(name))
+            //    //  RunnerRolling(filename);
+            //    //}
+
+            //    return;
+
+
             //}
-
-            return;
-
-
-
 
 
 
@@ -47,7 +58,51 @@ namespace CleanCommit
 
         }
 
-        private static void RunOldRoller() {
+        private static void LongMaxTest()
+        {
+            var cost = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
+            {
+                // Adequacy = true
+            };
+            var adeq = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
+            {
+                Adequacy = true
+            };
+            var full = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
+            {
+                TransmissionTax = true
+            };
+            ExtraRunTemp(full, "F", 14 * 24);
+            ExtraRunTemp(cost, "C", 14 * 24);
+            ExtraRunTemp(adeq, "A", 14 * 24);
+        }
+
+        private static void ExtraRunTemp(ConstraintConfiguration CC, string name, int timeHorizon)
+        {
+            CC.SetLimits(720, timeHorizon);
+            string filename = @"C:\Users\4001184\OneDrive - Universiteit Utrecht\ACDC_WON\DE_2040_1980.uc";
+            PowerSystem PS = IOUtils.GetPowerSystem(filename);
+            Run(); Run2();
+            void Run()
+            {
+                TightSolver TS = new TightSolver(PS, CC);
+                TS.ConfigureModel();
+                Action<Objective> test = ob => ob.LOLMaxQuadatric();
+                var output = TS.LOLOptimzation(6000, 1, "LOLMax_" + name, test);
+                TS.Kill();
+            }
+            void Run2()
+            {
+                TightSolver TS = new TightSolver(PS, CC);
+                TS.ConfigureModel();
+                Action<Objective> test = ob => ob.LOLObjective();
+                var output = TS.LOLOptimzation(6000, 1, "LOLMin_" + name, test);
+                TS.Kill();
+            }
+        }
+
+        private static void RunOldRoller()
+        {
             var binfile = @"E:\Temp2\DE_2040_1979.bin";
             var sol = Solution.GetFromBin(binfile);
             var name = sol.PS.Name;
@@ -67,7 +122,7 @@ namespace CleanCommit
 
             var rollingSolver = new RollingSolver(sol, newCC);
 
-            var rollingSolution = rollingSolver.Roll(36, 12,12, name);
+            var rollingSolution = rollingSolver.Roll(36, 12, 12, name);
             rollingSolver.Kill();
         }
 
@@ -101,7 +156,7 @@ namespace CleanCommit
             //  Console.ReadLine();
             var rollingSolver = new RollingSolver(sol, newCC);
 
-            var rollingSolution = rollingSolver.Roll(240, 120,120, name);
+            var rollingSolution = rollingSolver.Roll(240, 120, 120, name);
             rollingSolver.Kill();
         }
 

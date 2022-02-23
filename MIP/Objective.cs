@@ -61,20 +61,27 @@ namespace CleanCommit.MIP
             {
                 CurrentObjective += GenerationCost + CycleCost + LOLCost + LORCost + DRCost;
             }
-            for (int t = 0; t < totalTime; t++)
-            {
-                for (int l = 0; l < PS.LinesAC.Count; l++)
-                {
-                    var transCostVar = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "");
-                    Model.AddConstr(transCostVar >= Vars.TransmissionFlowAC[l, t],"");
-                    Model.AddConstr(transCostVar >= -Vars.TransmissionFlowAC[l, t], "");
-                    CurrentObjective += transCostVar;// Vars.TransmissionFlowAC[l,t];
-                }
-            }
+            AddTransmissionTax();
 
             Model.SetObjective(CurrentObjective, GRB.MINIMIZE);
         }
 
+        private void AddTransmissionTax()
+        {
+            if (CC.TransmissionTax)
+            {
+                for (int t = 0; t < totalTime; t++)
+                {
+                    for (int l = 0; l < PS.LinesAC.Count; l++)
+                    {
+                        var transCostVar = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "");
+                        Model.AddConstr(transCostVar >= Vars.TransmissionFlowAC[l, t], "");
+                        Model.AddConstr(transCostVar >= -Vars.TransmissionFlowAC[l, t], "");
+                        CurrentObjective += transCostVar;// Vars.TransmissionFlowAC[l,t];
+                    }
+                }
+            }
+        }
 
 
         public void OnlyAnalysesCO2()
@@ -125,15 +132,19 @@ namespace CleanCommit.MIP
         }
 
 
-        GRBLinExpr LOLObjectiveExpresion;
+        public GRBVar[,] LOLVars;
+        public GRBLinExpr LOLObjectiveExpresion;
         public void LOLObjective()
         {
             LOLObjectiveExpresion = new GRBLinExpr();
+            LOLVars = new GRBVar[totalNodes, totalTime];
             for (int t = 0; t < totalTime; t++)
             {
                 for (int n = 0; n < totalNodes; n++)
                 {
+
                     GRBVar hasLOL = Model.AddVar(0, 1, 0.0, GRB.BINARY, "");
+                    LOLVars[n,t] = hasLOL;
                     Model.AddConstr(Vars.NodalLossOfLoad[n, t] <= PS.Nodes[n].NodalDemand(t, CC.TimeOffSet) * hasLOL, "LOLMinConstraint");
                     LOLObjectiveExpresion += hasLOL;
                 }

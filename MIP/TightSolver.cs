@@ -169,7 +169,7 @@ namespace CleanCommit
         public Solution LOLOptimzation(int TimeLimit, double fraction, string folderName, Action<Objective> a )
         {
             string extraComment = "";
-            string RootFolder = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\2020Results\" + folderName + @"\";
+            string RootFolder = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\2022Results\extra14dagen\" + folderName + @"\";
             string Folder = RootFolder ;
             Directory.CreateDirectory(Folder);
 
@@ -195,6 +195,7 @@ namespace CleanCommit
             }
             solution2.ToCSV(Folder + @"\" + GRB.MINIMIZE + "_" + PS + "_" + CC.TimeOffSet);
 
+            
 
             int year = int.Parse(PS.ToString().Split('_')[2]);
             DateTime dt = new DateTime(year, 1, 1);

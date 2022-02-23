@@ -231,7 +231,7 @@ namespace CleanCommit
         }
         public void ExprimentFake(ConstraintConfiguration CC, string extra)
         {
-            for (int year = 2003; year < 2019; year++)
+            for (int year = 1950; year < 2019; year++)
             {
                 foreach (var instance in TYDNPInstances)
                 {
@@ -242,7 +242,6 @@ namespace CleanCommit
                     //Console.ReadLine();
                     //Console.ReadLine();
                     Run();
-                    throw new Exception();
                     void Run()
                     {
                         TightSolver TS = new TightSolver(PS, CC);
@@ -263,9 +262,9 @@ namespace CleanCommit
                         output.GurobiCostCycle,
                         output.ComputationTime };
                         var line = string.Join("\t", cells);
-                        File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\FullExperimentFake.txt", line + "\n");
-                        output.ToCSV(@"E:\WindOn\UCCsv\" + PS.Name.Split('.').First() + "_" + extra + ".csv");
-                        output.ToBin(@"E:\WindOn\UCBin\" + PS.Name.Split('.').First() + "_" + extra + ".bin");
+                        File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\FullExperimentFake2.txt", line + "\n");
+                        output.ToCSV(@"E:\WindOn2\UCCsv\" + PS.Name.Split('.').First() + "_" + extra + ".csv");
+                        output.ToBin(@"E:\WindOn2\UCBin\" + PS.Name.Split('.').First() + "_" + extra + ".bin");
                         TS.Kill();
                     }
                 }
