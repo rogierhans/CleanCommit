@@ -19,7 +19,7 @@ namespace CleanCommit.Instance
         public int Count;
 
         //generation limits
-        public double pMin, pMax;
+
 
         //generation cost as a quadratic function f(p) = a + bp + c^2
         public double A, B, C;
@@ -52,14 +52,27 @@ namespace CleanCommit.Instance
         public double Lambda;
 
         public string PrintType;
-        public  Unit() { }
+        private double pMin;
+        private double pMax;
+        public double PMin { get { return Math.Min(pMin, PMax); } set => pMin = value; }
+        public double PMax
+        {
+            get
+            {
+                if(new string[] { "LIGNITE", "GAS", "COAL" , "OIL" }.Contains(PrintType)) { return pMax * GLOBAL.PMAXMultiplier; }
+                return pMax;
+            }
+            set => pMax = value;
+        }
+
+        public Unit() { }
         public Unit(string iD, string name, int count, double pMin, double pMax, double a, double b, double c, double rU, double rD, double sU, double sD, int minUpTime, int minDownTime, double[] startCostInterval, int[] startInterval, double fSC, double vSC, double lambda)
         {
             ID = iD;
             Name = name;
             Count = count;
-            this.pMin = pMin;
-            this.pMax = pMax;
+            this.PMin = pMin;
+            this.PMax = pMax;
             A = a;
             B = b;
 
@@ -84,52 +97,26 @@ namespace CleanCommit.Instance
             Name = "Generator" + ID;
         }
 
-
-        //public List<Unit> CreateCopies(int startID, int count)
-        //{
-        //    List<Unit> Copies = new List<Unit>();
-        //    for (int i = startID; i < startID + count; i++)
-        //    {
-        //        Copies.Add(Copy(i));
-        //    }
-        //    return Copies;
-        //}
-        //public Unit Copy(int newID)
-        //{
-        //    var newUnit = new Unit(newID, 1);
-        //    newUnit.SetGenerationLimits(pMin, pMax);
-        //    newUnit.SetGenerationCost(A, B, C);
-        //    newUnit.SetRampLimits(RU, RD, SU, SD);
-        //    newUnit.SetMinTime(minDownTime, minUpTime);
-        //    newUnit.SetSUInterval(StartCostInterval, StartInterval);
-        //    //newUnit.CreateUniformPiecewiseFunction(CC.PiecewiseSegments);
-        //    return newUnit;
-        //}
-
-
         public void SetGenerationLimits(double pMin, double pMax)
         {
-
-            this.pMin = pMin;
-            this.pMax = pMax;
+            PMin = pMin;
+            PMax = pMax;
         }
 
         public void SetGenerationCost(double a, double b, double c)
         {
             A = a;
             B = b;
-            //Console.WriteLine(B);
-            //Console.ReadLine();
             C = c;
         }
 
         public void SetRampLimits(double rU, double rD, double sU, double sD)
         {
 
-            RU = (int)Math.Min(rU, pMax);
-            RD = (int)Math.Min(rD, pMax);
-            SU = (int)Math.Min(sU, pMax);
-            SD = (int)Math.Min(sD, pMax);
+            RU = (int)Math.Min(rU, PMax);
+            RD = (int)Math.Min(rD, PMax);
+            SU = (int)Math.Min(sU, PMax);
+            SD = (int)Math.Min(sD, PMax);
         }
 
         public void SetMinTime(int minUpTime, int minDownTime)
@@ -202,15 +189,15 @@ namespace CleanCommit.Instance
             {
                 ID.ToString(),
                 Count.ToString(),
-                Math.Round(pMin, 5).ToString(),
-                Math.Round(pMax, 5).ToString(),
+                Math.Round(PMin, 5).ToString(),
+                Math.Round(PMax, 5).ToString(),
                 Math.Round(A, 5).ToString(),
                 Math.Round(B, 5).ToString(),
                 Math.Round(C, 5).ToString(),
                 Math.Round(RU, 5).ToString(),
                 Math.Round(RD, 5).ToString(),
-                Math.Max(pMin, Math.Round(SU, 5)).ToString(),
-                Math.Max(pMin, Math.Round(SD, 5)).ToString(),
+                Math.Max(PMin, Math.Round(SU, 5)).ToString(),
+                Math.Max(PMin, Math.Round(SD, 5)).ToString(),
                 Math.Max(minUpTime, 1).ToString(),
                 Math.Max(minDownTime, 1).ToString(),
                 "-1",
@@ -228,14 +215,8 @@ namespace CleanCommit.Instance
         public void GetInfo()
         {
             Console.WriteLine(Name);
-            Console.WriteLine("GEN:{0} - {1}", pMin, pMax);
+            Console.WriteLine("GEN:{0} - {1}", PMin, PMax);
             Console.WriteLine("COS:{0}+{1}p+{2}P^2", A, B, C);
-            //Console.WriteLine("PWS:{0}", "[" + String.Join(":", PiecewiseLengths) + "]");
-            //Console.WriteLine("PWC:{0}", "[" + String.Join(":", PiecewiseCost) + "]");
-            //Console.WriteLine("PCU:{0}", "[" + String.Join(":", PiecewiseCumalative) + "]");
-            //Console.WriteLine("CvL:{0}", "[" + String.Join(":", PiecewiseCvl) + "]");
-            //Console.WriteLine("CwL:{0}", "[" + String.Join(":", PiecewiseCwl) + "]");
-            //Console.WriteLine("DIF:{0}", "[" + String.Join(":", PiecewiseCvl.Zip(PiecewiseCwl, (a, b) => b - a)) + "]");
             Console.WriteLine("RAM:{0} - {1}", RU, RD);
             Console.WriteLine("STA:{0} - {1}", SU, SD);
             Console.WriteLine("MIN:{0} - {1}", minUpTime, minDownTime);
@@ -249,8 +230,8 @@ namespace CleanCommit.Instance
             List<string> Properties = new List<string>
             {
                 ID.ToString(),
-                pMin.ToString(),
-                pMax.ToString(),
+                PMin.ToString(),
+                PMax.ToString(),
                 Math.Round(A, 5).ToString(),
                 Math.Round(B, 5).ToString(),
                 Math.Round(C, 5).ToString(),

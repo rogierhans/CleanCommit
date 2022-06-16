@@ -105,7 +105,7 @@ namespace CleanCommit.MIP
                 for (int u = 0; u < totalUnits; u++)
                 {
                     Unit unit = PS.Units[u];
-                    AltObjective += Vars.P[t, u] * unit.CO2Variable + Vars.Commit[t, u] * unit.CO2Fixed;
+                    AltObjective += (Vars.P[t, u] + Vars.Commit[t, u] * unit.PMin) * unit.CO2Variable + Vars.Commit[t, u] * unit.CO2Fixed;
                 }
             }
             Model.SetObjective(AltObjective, GRBMINMAXMode);
@@ -123,7 +123,7 @@ namespace CleanCommit.MIP
                     Unit unit = PS.Units[u];
                     if (unit.PrintType == GeneratorType)
                     {
-                        AltObjective += Vars.P[t, u];
+                        AltObjective += Vars.P[t, u] + Vars.Commit[t,u] * unit.PMin;
                     }
                     //Console.WriteLine(Vars.PiecewiseGeneration[u]);
                 }
@@ -207,7 +207,7 @@ namespace CleanCommit.MIP
                 {
                     Unit unit = PS.Units[u];
                     //Console.WriteLine(Vars.PiecewiseGeneration[u]);
-                    GenCost += Vars.Commit[t, u] * (Vars.PiecewiseGeneration[u].GetCost(unit.pMin) + unit.A);
+                    GenCost += Vars.Commit[t, u] * (Vars.PiecewiseGeneration[u].GetCost(unit.PMin) + unit.A);
                     GenCost += SummationTotal(totalPiecewiseSegments, s => Vars.Piecewise[t, u, s] * Vars.PiecewiseGeneration[u].PiecewiseSlope[s]);
 
                 }

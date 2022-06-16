@@ -54,7 +54,7 @@ namespace CleanCommit.MIP
                         sum += Variable.ReserveThermal[t, u, reserve];
                     }
                     sum += Variable.P[t, u];
-                    Model.AddConstr(sum <= unit.pMax - unit.pMin,"" );
+                    Model.AddConstr(sum <= unit.PMax - unit.PMin,"" );
                 }
             }
         }

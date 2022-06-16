@@ -28,10 +28,12 @@ public     static class IOUtils
             var transmissionLinesDC = ParseLinesDC(GetLineInterval("transmissionDC", lines).Skip(1).ToList(), nodes);
             var calc = new NewPTDF(transmissionLinesAC, nodes);
             double[,] ptdf = calc.GetPTDF();
-
+            var PS = new PowerSystem(filenameInstance.Split('\\').Last(), units, nodes, transmissionLinesAC, transmissionLinesDC, storageUnits, resGeneration, ptdf);
             //new PTDFCalculator(transmissionLinesAC, nodes).GetPTDF();
-            return new PowerSystem(filenameInstance.Split('\\').Last(), units, nodes, transmissionLinesAC, transmissionLinesDC, storageUnits, resGeneration, ptdf);
+            return PS;
         }
+
+        
 
         private static void ParseDemand(List<Node> nodes, List<string> lines, int timeStepLimit)
         {
@@ -40,7 +42,7 @@ public     static class IOUtils
                 var input = line.Split(';');
                 int ID = int.Parse(input[0]);
                 int NodeID = int.Parse(input[1]);
-                var values = GetValues(input[2]).Select(v => double.Parse(v)).Take(timeStepLimit).ToList();
+                var values = GetValues(input[2]).Select(v => Math.Max(0,double.Parse(v))).Take(timeStepLimit).ToList();
                 nodes[NodeID].SetDemand(values);
             }
         }
@@ -61,22 +63,22 @@ public     static class IOUtils
                 //string name = input[i++];
                 double pMin = double.Parse(input[i++]);
                 double pMax = double.Parse(input[i++]);
-                unit.SetGenerationLimits(pMin, pMax);
+
 
                 double a = double.Parse(input[i++]);
                 double b = double.Parse(input[i++]);
                 double c = double.Parse(input[i++]);
-                unit.SetGenerationCost(a, b, c);
+
 
                 double rampUp = double.Parse(input[i++]);
                 double rampDown = double.Parse(input[i++]);
                 double startUp = double.Parse(input[i++]);
                 double shutdown = double.Parse(input[i++]);
-                unit.SetRampLimits(rampUp, rampDown, startUp, shutdown);
+
 
                 int minUpTime = int.Parse(input[i++]);
                 int minDownTime = int.Parse(input[i++]);
-                unit.SetMinTime(minDownTime, minUpTime);
+
 
                 double FSC = double.Parse(input[i++]);
                 double VSC = double.Parse(input[i++]);
@@ -100,12 +102,15 @@ public     static class IOUtils
                 //Console.WriteLine(string.Join("\t", unit.StartCostInterval));
                 //Console.ReadLine();
                 unit.PrintType = input[i++];
+                unit.SetGenerationLimits(pMin, pMax);
+                unit.SetGenerationCost(a, b, c);
+                unit.SetRampLimits(rampUp, rampDown, startUp, shutdown);
+                unit.SetMinTime(minDownTime, minUpTime);
                 double cfixed = double.Parse(input[i++]);
                 double cvariable = double.Parse(input[i++]);
                 unit.CO2Fixed = cfixed;
                 unit.CO2Variable = cvariable;
                 units.Add(unit);
-
             }
 
             return units;

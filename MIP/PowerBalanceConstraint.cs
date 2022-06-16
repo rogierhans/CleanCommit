@@ -73,7 +73,7 @@ namespace CleanCommit.MIP
             {
                 int index = Variable.UnitID2Index[unitID];
                 var unit = PS.Units[index];
-                totalGeneration += Variable.P[t, index] + unit.pMin * Variable.Commit[t, index];
+                totalGeneration += Variable.P[t, index] + unit.PMin * Variable.Commit[t, index];
             }
             return totalGeneration;
         }

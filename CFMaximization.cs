@@ -22,11 +22,11 @@ namespace CleanCommit
                 //Adequacy = true
             };
             CC.SetLimits(offSet, timeHorizon);
-            for (int year = 1979; year <= 1979; year++)
+            for (int year = 1950; year < 2019; year = year +10)
             {
                 foreach (var instance in TYDNPInstances)
                 {
-                    string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC\" + instance + "_" + year + ".uc";
+                    string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC_WON\" + instance + "_" + year + ".uc";
                     PowerSystem PS = IOUtils.GetPowerSystem(filename);
                     Run();
                     void Run()
@@ -39,6 +39,33 @@ namespace CleanCommit
                 }
             }
         }
+
+        public void ALLCO2(double fraction, int timeHorizon, int offSet)
+        {
+
+            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
+            {
+                //Adequacy = true
+            };
+            CC.SetLimits(offSet, timeHorizon);
+            for (int year = 1950; year < 2019; year = year + 10)
+            {
+                foreach (var instance in TYDNPInstances)
+                {
+                    string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC_WON\" + instance + "_" + year + ".uc";
+                    PowerSystem PS = IOUtils.GetPowerSystem(filename);
+                    Run();
+                    void Run()
+                    {
+                        TightSolver TS = new TightSolver(PS, CC);
+                        TS.ConfigureModel();
+                        var output = TS.CO2Optimzation(36000, fraction);
+                        TS.Kill();
+                    }
+                }
+            }
+        }
+
         public void AllTestsLOL(ConstraintConfiguration CC, double fraction, int timeHorizon, int offSet, string name )
         {
 

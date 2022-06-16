@@ -148,7 +148,7 @@ namespace CleanCommit.MIP
                 for (int g = 0; g < P.GetLength(1); g++)
                 {
                     var unit = PS.Units[g];
-                    Dispatch[t, g] = P[t, g] + unit.pMin * Commit[t, g];
+                    Dispatch[t, g] = P[t, g] + unit.PMin * Commit[t, g];
                 }
             }
         }
@@ -197,6 +197,7 @@ namespace CleanCommit.MIP
             lines.AddRange(MArrayToString("ReserveThermal", ReserveThermal));
             lines.AddRange(MArrayToString("ReserveStorage", ReserveStorage));
             // lines.AddRange(MArrayToString("Piecewise", Piecewise));
+          //  Directory.CreateDirectory(filename);
             File.WriteAllLines(filename, lines);
         }
 

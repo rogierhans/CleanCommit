@@ -163,17 +163,11 @@ namespace CleanCommit
         public void AllTests()
         {
 
-            int timehorizon = 8760;
-            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
-            {
-                Adequacy = true
-            };
-            CC.SetLimits(0, timehorizon);
             //CC.Reserves.Add(new Reserve(0.01, 0, 1.0 / 12, 0, 0));
             //CC.Reserves.Add(new Reserve(0, 3000, 1.0 / 6, 0, 0));
             //CC.Reserves.Add(new Reserve(0, 0, 1, 0.12, 0.10));
             // Expriment8(CC, "RealRun");
-            ExprimentFake(CC, "RealRun");
+            // ExprimentFake(CC, "RealRun");
 
             //CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, false, 1, false);
             //CC.Adequacy = true;
@@ -191,6 +185,7 @@ namespace CleanCommit
             //CC.SetLimits(0, timehorizon);
             //Expriment8(CC,"Simple");
         }
+
         public void Expriment8(ConstraintConfiguration CC, string extra)
         {
             for (int year = 1979; year < 2019; year++)
@@ -199,7 +194,7 @@ namespace CleanCommit
                 {
                     string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC\" + instance + "_" + year + ".uc";
                     PowerSystem PS = IOUtils.GetPowerSystem(filename);
- 
+
                     Run();
                     void Run()
                     {
@@ -229,14 +224,28 @@ namespace CleanCommit
                 }
             }
         }
-        public void ExprimentFake(ConstraintConfiguration CC, string extra)
+        public void AllInstancesRun(string extra)
         {
-            for (int year = 1950; year < 2019; year++)
+
+            int timehorizon = 8760;
+            var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
             {
-                foreach (var instance in TYDNPInstances)
+                Adequacy = true
+            };
+            CC.SetLimits(0, timehorizon);
+            //Console.WriteLine("Years Reduced, constriants on");
+            //Console.ReadLine();
+            foreach (var (instance,startYear) in new List<(string,int)>() { ("DE_2040",1997), ("GA_2040", 1982), ("NT_2040", 1982) })//TYDNPInstances)
+            {
+                for (int year = startYear; year <= 2010; year++)
                 {
-                    string filename = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\ACDC_WON\" + instance + "_" + year + ".uc";
+                    string filename = @"E:\ACDC\" + instance + "_" + year + ".uc";
                     PowerSystem PS = IOUtils.GetPowerSystem(filename);
+                    //PS.Nodes.ForEach(x => x.PrintCapacity());
+                    //PS.REDUCEUNITS();
+                    //Console.ReadLine();
+                    //PS.Nodes.ForEach(x => x.PrintCapacity());
+                    //Console.ReadLine();
                     //Console.WriteLine(string.Join("\t", PS.StorageUnits.First(x => x.Name == "STO_SE01").Inflow));
                     //Console.WriteLine(PS.StorageUnits.First(x => x.Name == "STO_SE01").ToFile());
                     //Console.ReadLine();
@@ -262,9 +271,9 @@ namespace CleanCommit
                         output.GurobiCostCycle,
                         output.ComputationTime };
                         var line = string.Join("\t", cells);
-                        File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\FullExperimentFake2.txt", line + "\n");
-                        output.ToCSV(@"E:\WindOn2\UCCsv\" + PS.Name.Split('.').First() + "_" + extra + ".csv");
-                        output.ToBin(@"E:\WindOn2\UCBin\" + PS.Name.Split('.').First() + "_" + extra + ".bin");
+                        File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\SmallExperimentFake8.txt", line + "\n");
+                        output.ToCSV(@"E:\AllResults\" + extra + @"\UCCsv\" + PS.Name.Split('.').First() + ".csv");
+                        output.ToBin(@"E:\AllResults\" + extra + @"\UCBin\" + PS.Name.Split('.').First() + ".bin");
                         TS.Kill();
                     }
                 }

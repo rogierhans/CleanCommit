@@ -98,7 +98,7 @@ namespace CleanCommit.MIP
                 {
                     Unit unit = PS.Units[u];
                     //Console.WriteLine(Vars.PiecewiseGeneration[u]);
-                    costPerTime += Solution.Commit[t, u] * (Solution.PiecewiseGeneration[u].GetCost(unit.pMin) + unit.A);
+                    costPerTime += Solution.Commit[t, u] * (Solution.PiecewiseGeneration[u].GetCost(unit.PMin) + unit.A);
 
                     for (int s = 0; s < totalPiecewiseSegments; s++)
                     {

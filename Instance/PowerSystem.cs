@@ -149,6 +149,37 @@ namespace CleanCommit.Instance
             Nodes.ForEach(node => node.WriteInfo(LinesDC, LinesAC));
         }
 
+        public void REDUCEUNITS()
+        {
+            var newUnits = new List<Unit>();
+            for (int nodeID = 0; nodeID < Nodes.Count; nodeID++)
+            {
+                var node = Nodes[nodeID];
+                var unit = new Unit();
+                var OGUnits = node.Units;
+                var pmax = OGUnits.Sum(x => x.PMax);
+                var a = OGUnits.Sum(x => x.A);
+                var b = OGUnits.Sum(x => x.B);
+                var start = OGUnits.Sum(x => x.StartCostInterval.First());
+                double[] costs = new double[] { start };
+                int[] intervall = new int[] { 0 };
+
+
+                //if (Demand.Keys.Contains(NUTS1Name))
+                {
+                    unit.SetGenerationCost(a, b, 0.0);
+                    unit.SetGenerationLimits(0, pmax);
+                    unit.SetRampLimits(pmax, pmax, pmax, pmax);
+                    unit.SetMinTime(1, 1);
+                    unit.SetSUInterval(costs, intervall);
+                    unit.PrintType = "MIXED";
+                    newUnits.Add(unit);
+                }
+                node.Units = new List<Unit>() { unit };
+            }
+            Units = newUnits;
+        }
+
 
 
 

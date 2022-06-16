@@ -33,37 +33,37 @@ namespace CleanCommit.MIP
 
             Unit unit = PS.Units[u];
             //constraint 23a 
-            var maxGeneration = (unit.pMax - unit.pMin) * Variable.Commit[t, u];
-            var startupConstraint23a = (unit.pMax - unit.SU) * Variable.Start[t, u];
+            var maxGeneration = (unit.PMax - unit.PMin) * Variable.Commit[t, u];
+            var startupConstraint23a = (unit.PMax - unit.SU) * Variable.Start[t, u];
             var stopNextConstraint23a = U.ZeroOrGreater(unit.SU - unit.SD) * MaybeVar(Variable.Stop, t + 1, u);
             var upperbound23a = maxGeneration - startupConstraint23a - stopNextConstraint23a;
 
 
             //constraint 23b
             var startupConstraint23b = U.ZeroOrGreater(unit.SD - unit.SU) * Variable.Start[t, u];
-            var stopNextConstraint23b = (unit.pMax - unit.SD) * MaybeVar(Variable.Stop, t + 1, u);
+            var stopNextConstraint23b = (unit.PMax - unit.SD) * MaybeVar(Variable.Stop, t + 1, u);
             var upperbound23b = maxGeneration - startupConstraint23b - stopNextConstraint23b;
 
 
             //constraint 38 
-            int TRU = (int)Math.Floor((unit.pMax - unit.SU) / unit.RU);
+            int TRU = (int)Math.Floor((unit.PMax - unit.SU) / unit.RU);
             int maxInt38 = U.MaxLookback(Math.Min(unit.minUpTime - 2, TRU), t);
-            var summation38 = Summation(maxInt38, i => (unit.pMax - unit.SU - i * unit.RU) * Variable.Start[t - i, u]);
+            var summation38 = Summation(maxInt38, i => (unit.PMax - unit.SU - i * unit.RU) * Variable.Start[t - i, u]);
             var upperbound38 = maxGeneration - stopNextConstraint23b - summation38;
 
             //constraint 40
             int maxInt40 = U.MaxLookback(Math.Min(unit.minUpTime - 1, TRU), t);
-            var summation40 = Summation(maxInt40, i => (unit.pMax - unit.SU - i * unit.RU) * Variable.Start[t - i, u]);
+            var summation40 = Summation(maxInt40, i => (unit.PMax - unit.SU - i * unit.RU) * Variable.Start[t - i, u]);
             var upperbound40 = maxGeneration - summation40;
 
 
             //constraint 41
-            int TRD = (int)Math.Floor((unit.pMax - unit.SD) / unit.RD);
+            int TRD = (int)Math.Floor((unit.PMax - unit.SD) / unit.RD);
             int KSD = U.Min(TRD, unit.minUpTime - 1, totalTime - t - 2);
             int KSU = U.Min(TRU, unit.minUpTime - 2 - U.ZeroOrGreater(KSD), t - 1);
             var upperbound41 = maxGeneration
-                - Summation(KSD, i => (unit.pMax - (unit.SD + i * unit.RD)) * Variable.Stop[t + 1 + i, u])
-                - Summation(KSU, i => (unit.pMax - (unit.SU + i * unit.RU)) * Variable.Start[t - i, u]);
+                - Summation(KSD, i => (unit.PMax - (unit.SD + i * unit.RD)) * Variable.Stop[t + 1 + i, u])
+                - Summation(KSU, i => (unit.PMax - (unit.SU + i * unit.RU)) * Variable.Start[t - i, u]);
 
 
 
@@ -94,7 +94,8 @@ namespace CleanCommit.MIP
         private void AddNormalConstraint(int t, int u)
         {
             Unit unit = PS.Units[u];
-            GRBLinExpr maxGeneration = (unit.pMax - unit.pMin) * Variable.Commit[t, u];
+           // Console.WriteLine((unit.PMax - unit.PMin));
+            GRBLinExpr maxGeneration = (unit.PMax - unit.PMin) * Variable.Commit[t, u];
             Model.AddConstr(Variable.P[t, u] <= maxGeneration, "");
         }
     }

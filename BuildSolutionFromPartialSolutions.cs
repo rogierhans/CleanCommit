@@ -100,7 +100,7 @@ namespace CleanCommit
                 {
                     Unit unit = Old.PS.Units[g];
                     Solution.P[t, g] = Old.P[indexold, g];
-                    Solution.Dispatch[t, g] = Old.P[indexold, g] + Old.Commit[indexold, g] * unit.pMin;
+                    Solution.Dispatch[t, g] = Old.P[indexold, g] + Old.Commit[indexold, g] * unit.PMin;
                     Solution.Commit[t, g] = Old.Commit[indexold, g];
                     Solution.Start[t, g] = Old.Start[indexold, g];
                     Solution.Stop[t, g] = Old.Stop[indexold, g];

@@ -31,5 +31,22 @@ namespace CleanCommit
             return total;
         }
 
+        public static double GetTotalEmissions(Solution sol)
+        {
+            int totalTime = sol.Dispatch.GetLength(0);
+            int totalUnits = sol.Dispatch.GetLength(1);
+            var PS = sol.PS;
+            double total = 0;
+            for (int t = 0; t < totalTime; t++)
+            {
+                for (int u = 0; u < totalUnits; u++)
+                {
+                    Unit unit = PS.Units[u];
+                    total += (sol.Dispatch[t, u]) * unit.CO2Variable + sol.Commit[t,u] * unit.CO2Fixed;
+                }
+            }
+            return total;
+        }
+
     }
 }

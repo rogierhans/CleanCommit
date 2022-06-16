@@ -35,8 +35,6 @@ namespace CleanCommit.MIP
                 {
                     var StorageUnit = PS.StorageUnits[s];
                     var inflowValue = StorageUnit.GetInflow(t,CC.TimeOffSet);
-                    if(s == 82)
-                     Console.Write(inflowValue+" ");
                     var inflowVar = Model.AddVar(0, inflowValue, 0.0, GRB.CONTINUOUS, "auxiliaryVariableStorageInflow_" + t + "_" + s);
                     var init = StorageUnit.MaxEnergy / 2;
 

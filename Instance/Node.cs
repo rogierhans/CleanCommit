@@ -93,7 +93,7 @@ namespace CleanCommit.Instance
         {
             if (Demand != null)
             {
-                return Demand[(time + timeOFFset) % Demand.Count];
+                return Demand[(time + timeOFFset) % Demand.Count] * GLOBAL.DemandMultiplier ;
             }
             return 0;
         }
@@ -116,6 +116,7 @@ namespace CleanCommit.Instance
                 Console.WriteLine(unit);
             }
 
+
             Console.WriteLine("Demand:");
             if (Demand != null)
                 Demand.Take(10).ToList().ForEach(demand => Console.WriteLine(demand));
@@ -124,10 +125,14 @@ namespace CleanCommit.Instance
 
 
         }
+        public void PrintCapacity()
+        {
+            Console.WriteLine("{0}:{1}", Name, Units.Sum(x => x.PMax));
+        }
 
         public double PotentialExport(PowerSystem PS)
         {
-            return Units.Sum(x => x.pMax) + RES.Sum(x => x.ResValues.Max()) + StorageUnits.Sum(x => x.MaxDischarge) ;
+            return Units.Sum(x => x.PMax) + RES.Sum(x => x.ResValues.Max()) + StorageUnits.Sum(x => x.MaxDischarge) ;
         }
 
 
@@ -144,8 +149,8 @@ namespace CleanCommit.Instance
         {
             List<string> lines = new List<string>();
             lines.Add(Name);
-            lines.Add("Total Generation:" + (Units.Sum(x => x.pMax) + RES.Sum(x => x.ResValues.Max()) + StorageUnits.Sum(x => x.MaxCharge)));
-            lines.Add("Total Unit:" + (Units.Sum(x => x.pMax)));
+            lines.Add("Total Generation:" + (Units.Sum(x => x.PMax) + RES.Sum(x => x.ResValues.Max()) + StorageUnits.Sum(x => x.MaxCharge)));
+            lines.Add("Total Unit:" + (Units.Sum(x => x.PMax)));
             lines.Add("ResValues Unit:" + RES.Sum(x => x.ResValues.Max()));
             lines.Add("StorageUnits Unit:" + StorageUnits.Sum(x => x.MaxCharge));
             bool RESloadfail = false;
@@ -160,7 +165,7 @@ namespace CleanCommit.Instance
                 {
                     string line = t + ":";
                     line += (RESloadfail ? 1 : 0).ToString() + (RESflowfail ? 1 : 0).ToString();
-                    double units = Units.Sum(x => x.pMax);
+                    double units = Units.Sum(x => x.PMax);
                     double storage = StorageUnits.Sum(x => x.MaxCharge);
                     double R = RES.Sum(x => x.ResValues[t]);
                     double RESload = Demand[t] - units - R - storage;

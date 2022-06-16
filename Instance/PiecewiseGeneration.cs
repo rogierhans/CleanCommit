@@ -29,9 +29,9 @@ namespace CleanCommit
         }
         public double DeterminePiecewiseCost(double p)
         {
-            if (p < Unit.pMin) { return GetCost(p); }
-            double totalP = p - Unit.pMin;
-            double totalCost = GetCost(Unit.pMin);
+            if (p < Unit.PMin) { return GetCost(p); }
+            double totalP = p - Unit.PMin;
+            double totalCost = GetCost(Unit.PMin);
             for (int s = 0; s < PiecewiseLengths.Length; s++)
             {
                 double length = Math.Min(totalP, PiecewiseLengths[s]);
@@ -45,7 +45,7 @@ namespace CleanCommit
         private void SetSegmentLength(int segments)
         {
             PiecewiseLengths = new double[segments];
-            double segementLength = (Unit.pMax - Unit.pMin) / segments;
+            double segementLength = (Unit.PMax - Unit.PMin) / segments;
             for (int s = 0; s < segments; s++)
             {
                 PiecewiseLengths[s] = segementLength;
@@ -56,7 +56,7 @@ namespace CleanCommit
         private void SetSegmentSlope(int segments)
         {
             PiecewiseSlope = new double[segments];
-            double cumulativeLength = Unit.pMin;
+            double cumulativeLength = Unit.PMin;
             for (int s = 0; s < segments; s++)
             {
                 var startpoint = cumulativeLength;
@@ -72,7 +72,7 @@ namespace CleanCommit
         {
             PiecewiseStartUpLimit = new double[segments];
             PiecewiseShutDownLimit = new double[segments];
-            double cumulativeLength = Unit.pMin;
+            double cumulativeLength = Unit.PMin;
             for (int s = 0; s < segments; s++)
             {
                 PiecewiseStartUpLimit[s] = GetCul(cumulativeLength, cumulativeLength + PiecewiseLengths[s], Unit.SU);

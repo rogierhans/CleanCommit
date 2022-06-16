@@ -9,12 +9,39 @@ using CleanCommit.Instance;
 using CleanCommit.MIP;
 namespace CleanCommit
 {
+    public static class GLOBAL
+    {
+        //Functional programmers hate this class!!
+        public static double DemandMultiplier = 1;
+        public static double PMAXMultiplier = 1;
+    }
     class Program
     {
         static void Main(string[] args)
 
 
         {
+            //var CC = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.Copperplate, false, false, 1, false);
+            //CC.SetLimits(0,3 * 24);
+            //string filename = @"C:\Users\4001184\Google Drive\Data\Github\RTS54.uc";
+            //PowerSystem PS = IOUtils.GetPowerSystem(filename);
+            //Run();
+            //void Run()
+            //{
+            //    TightSolver TS = new TightSolver(PS, CC);
+            //    TS.ConfigureModel();
+            //    var output = TS.NewSolve(600,0);
+            //    output.ToCSV(@"C:\Users\4001184\Desktop\Alard.txt");
+            //    TS.Kill();
+
+            //}
+            //return;
+            //WARNING DEMAND MULITPLIER STAAT AA!N
+            //WARNING DEMAND MULITPLIER STAAT AAN!
+            //WARNING DEMAND MULITPLIER STAAT AAN!
+            //WARNING DEMAND MULITPLIER STAAT AAN!
+            //WARNING DEMAND MULITPLIER STAAT AAN!
+            //WARNING DEMAND MULITPLIER STAAT AAN!
             //LongMaxTest();
 
             ////return;
@@ -52,10 +79,15 @@ namespace CleanCommit
 
 
 
-            //CFMaximazation();
-            var exp = new Experiment();
-            exp.AllTests();
+            // CFMaximazation();
 
+            var exp = new Experiment();
+            GLOBAL.PMAXMultiplier = 0.8;
+            exp.AllInstancesRun("PMAX80");
+           // GLOBAL.DemandMultiplier = 1.1;
+           // exp.AllInstancesRun("Demand110");
+           // GLOBAL.DemandMultiplier = 1.2;
+           // exp.AllInstancesRun("Demand120");
         }
 
         private static void LongMaxTest()
@@ -163,9 +195,9 @@ namespace CleanCommit
         private static void CFMaximazation()
         {
             var Experiment = new CFMaximization();
-            for (double fraction = 1.001; fraction <= 1.01; fraction += 0.001)
+            foreach (double fraction in new List<double>() { 1.001, 1.005, 1.01 })
             {
-                for (int dayOffset = 0; dayOffset < 365; dayOffset += 30)
+                for (int dayOffset = 0; dayOffset < 365; dayOffset += 100)
                 {
                     int hourOffset = dayOffset * 24;
                     Experiment.AllTests("GAS", fraction, 72, hourOffset);
@@ -174,8 +206,18 @@ namespace CleanCommit
                 }
             }
         }
-
-
+        private static void CO2Maximazation()
+        {
+            var Experiment = new CFMaximization();
+            foreach (double fraction in new List<double>() { 1.001, 1.005, 1.01 })
+            {
+                for (int dayOffset = 0; dayOffset < 365; dayOffset += 100)
+                {
+                    int hourOffset = dayOffset * 24;
+                    Experiment.ALLCO2(fraction, 72, hourOffset);
+                }
+            }
+        }
 
 
 

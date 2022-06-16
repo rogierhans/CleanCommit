@@ -23,12 +23,12 @@ namespace CleanCommit
             CC = cc;
             env = new GRBEnv();
             model = new GRBModel(env);
-            model.SetCallback(new ConsoleOverwrite());
+           // model.SetCallback(new ConsoleOverwrite());
             //model.Set("LogFile", @"C:\Users\4001184\Desktop\Glog.txt");
             // model.Parameters.Threads = 1;
             model.Set("DisplayInterval", "1");
             model.Set("MIPGap", "0.00001");
-            model.Set(GRB.IntParam.LogToConsole, 0);
+           // model.Set(GRB.IntParam.LogToConsole, 0);
             //model.Set("Method", "1");
             //model.Set("IntFeasTol", "0.000000001");
         }
@@ -76,8 +76,8 @@ namespace CleanCommit
             var RampingConstraint = new RampConstraint(PS, CC, model, Variables);
             RampingConstraint.AddConstraint();
 
-            var PiecewiseConstraint = new PiecewiseConstraint(PS, CC, model, Variables);
-            PiecewiseConstraint.AddConstraint();
+            //var PiecewiseConstraint = new PiecewiseConstraint(PS, CC, model, Variables);
+            //PiecewiseConstraint.AddConstraint();
 
             TC = new TransmissionConstraint(PS, CC, model, Variables);
             TC.AddConstraint();
@@ -112,7 +112,7 @@ namespace CleanCommit
 
         public Solution CFOptimzation(int TimeLimit, double fraction, string generatorType)
         {
-            string RootFolder = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\CFMax\";
+            string RootFolder = @"E:\2022Results\CFMax2\";
             string Folder = RootFolder + generatorType;
             Directory.CreateDirectory(Folder);
 
@@ -150,7 +150,7 @@ namespace CleanCommit
                 + fraction + "\t"
                 + PS + "\t"
                 + year + "\t" +
-                +CC.TimeOffSet + "\t" 
+                +CC.TimeOffSet + "\t"
                 + dt.ToString() + "\t"
                 + solution2.ComputationTime + "\t"
                 + solution3.ComputationTime + "\t"
@@ -158,6 +158,7 @@ namespace CleanCommit
                 + totalGenerationForSpecifiedType2 + "\t"
                 + totalGenerationForSpecifiedType3 + "\t"
                 + totalGenerationForSpecifiedType2 / totalGenerationForSpecifiedType3 + "\t"
+                                + solution1.GurobiCostLOL + "\t"
                 + solution1.GurobiCost + "\t"
                 + solution2.GurobiCost + "\t"
                 + solution3.GurobiCost + "\t"
@@ -166,11 +167,68 @@ namespace CleanCommit
             return solution2;
         }
 
-        public Solution LOLOptimzation(int TimeLimit, double fraction, string folderName, Action<Objective> a )
+        public Solution CO2Optimzation(int TimeLimit, double fraction)
+        {
+            string RootFolder = @"E:\2022Results\CO2\";
+            string Folder = RootFolder ;
+            Directory.CreateDirectory(Folder);
+
+            //Solve Original Model
+            model.Parameters.TimeLimit = TimeLimit;
+            model.Optimize();
+            var solution1 = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
+            double totalGenerationForSpecifiedType = SolutionAnalyssis.GetTotalEmissions(solution1);
+            solution1.ToCSV(Folder + @"\OG_" + PS);
+
+            // optimize <generatorType> CF while staying <fraction> within the original model objective value
+            model.AddConstr(Objective.CurrentObjective <= solution1.GurobiCost * fraction, "");
+            Objective.AddCO2Objective(GRB.MINIMIZE);
+            model.Optimize();
+            var solution2 = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
+            solution2.ToCSV(Folder + @"\" + GRB.MINIMIZE + "_" + PS);
+            double totalGenerationForSpecifiedType2 = SolutionAnalyssis.GetTotalEmissions(solution2);
+
+
+
+            Objective.AddObjective();
+            model.Optimize();
+
+
+            Objective.AddCO2Objective(GRB.MAXIMIZE);
+            model.Optimize();
+            var solution3 = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
+            solution3.ToCSV(Folder + @"\" + GRB.MAXIMIZE + "_" + PS);
+            double totalGenerationForSpecifiedType3 = SolutionAnalyssis.GetTotalEmissions(solution3);
+            int year = int.Parse(PS.ToString().Split('_')[2]);
+            DateTime dt = new DateTime(year, 1, 1);
+            dt = dt.AddHours(CC.TimeOffSet);
+            File.AppendAllText(RootFolder + @"\text.txt",
+                + fraction + "\t"
+                + PS + "\t"
+                + year + "\t" +
+                +CC.TimeOffSet + "\t"
+                + dt.ToString() + "\t"
+                + solution2.ComputationTime + "\t"
+                + solution3.ComputationTime + "\t"
+                + totalGenerationForSpecifiedType + "\t"
+                + totalGenerationForSpecifiedType2 + "\t"
+                + totalGenerationForSpecifiedType3 + "\t"
+                + totalGenerationForSpecifiedType2 / totalGenerationForSpecifiedType3 + "\t"
+                                + solution1.GurobiCostLOL + "\t"
+                + solution1.GurobiCost + "\t"
+                + solution2.GurobiCost + "\t"
+                + solution3.GurobiCost + "\t"
+                + "\n");
+
+            return solution2;
+        }
+
+
+        public Solution LOLOptimzation(int TimeLimit, double fraction, string folderName, Action<Objective> a)
         {
             string extraComment = "";
             string RootFolder = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\2022Results\extra14dagen\" + folderName + @"\";
-            string Folder = RootFolder ;
+            string Folder = RootFolder;
             Directory.CreateDirectory(Folder);
 
             //Solve Original Model
@@ -187,15 +245,16 @@ namespace CleanCommit
                 a(Objective);
                 model.Optimize();
                 extraComment = model.Status.ToString();
-                if (model.Status == GRB.Status.NUMERIC) {
+                if (model.Status == GRB.Status.NUMERIC)
+                {
                     extraComment += "_nummeric";
                 }
-                else if(model.Status == GRB.Status.OPTIMAL)
+                else if (model.Status == GRB.Status.OPTIMAL)
                     solution2 = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
             }
             solution2.ToCSV(Folder + @"\" + GRB.MINIMIZE + "_" + PS + "_" + CC.TimeOffSet);
 
-            
+
 
             int year = int.Parse(PS.ToString().Split('_')[2]);
             DateTime dt = new DateTime(year, 1, 1);

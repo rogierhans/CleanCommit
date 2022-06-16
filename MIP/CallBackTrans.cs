@@ -57,7 +57,7 @@ namespace CleanCommit.MIP
                         {
                             var sol = GetSolution(NodalPowerBalance[n, t]);
                             var node = PS.Nodes[n];
-                            var min = node.Units.Count > 0 ? node.Units.Min(x => x.pMin) : 0;
+                            var min = node.Units.Count > 0 ? node.Units.Min(x => x.PMin) : 0;
                             if (sol < min + 0.00001 && sol > 0.0000001)
                             {
                                 //Console.WriteLine("{0} <= {1} <= {2}", 0, sol, min);
@@ -99,7 +99,7 @@ namespace CleanCommit.MIP
             {
                 int index = Variable.UnitID2Index[unitID];
                 var unit = PS.Units[index];
-                totalGeneration += Variable.P[t, index] + unit.pMin * Variable.Commit[t, index];
+                totalGeneration += Variable.P[t, index] + unit.PMin * Variable.Commit[t, index];
             }
             return totalGeneration;
         }
