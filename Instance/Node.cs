@@ -19,7 +19,7 @@ namespace CleanCommit.Instance
         public List<StorageUnit> StorageUnits;
         public List<ResGeneration> RES;
         public List<double> Demand;
-        public double DemandResonsePotential;
+        private double DemandResonsePotential;
         public double P2GCapacity;
         //public List<double> SpinningReservesUP;
         //public List<double> SpinningReservesDown;
@@ -43,31 +43,19 @@ namespace CleanCommit.Instance
             return String.Join(";", Properties);
         }
         public Node() { }
-        public Node(int iD, string name, List<Unit> UnitList, List<StorageUnit> StorageList, List<ResGeneration> RESList)
+        public Node(int iD, string name, List<Unit> UnitList, List<StorageUnit> StorageList, List<ResGeneration> RESList, double demandresponse)
         {
             ID = iD;
             Name = name;
             Units = UnitList;
             StorageUnits = StorageList;
             RES = RESList;
+            DemandResonsePotential = demandresponse;
             //Demand = demand;
             //SpinningReservesUP = spinningReservesUP;
             // SpinningReservesDown = spinningReservesDown;
         }
 
-        public Node CopyWithExport(List<double> Export)
-        {
-            var newNode = new Node(ID, Name, Units, StorageUnits, RES);
-            if (Demand == null)
-            {
-                newNode.Demand = Export;
-            }
-            else
-            {
-                newNode.Demand = Demand.Zip(Export, (a, b) => a + b).ToList();
-            }
-            return newNode;
-        }
 
         public void PeturbDemand(Random RNG, double factor)
         {
@@ -96,6 +84,11 @@ namespace CleanCommit.Instance
                 return Demand[(time + timeOFFset) % Demand.Count] * GLOBAL.DemandMultiplier ;
             }
             return 0;
+        }
+
+        public double GetDemandResponse(ConstraintConfiguration CC) {
+            if (CC.IgnoreDR) return 0;
+            else return DemandResonsePotential;
         }
 
         public double GetTotalDemand(int totalTime)

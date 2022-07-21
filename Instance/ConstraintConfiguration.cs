@@ -34,6 +34,7 @@ namespace CleanCommit.Instance
         public bool Adequacy = false;
         public bool TransmissionTax = false;
         public bool IngorneP2GRes = true;
+        public bool IgnoreDR = false;
         public ConstraintConfiguration() { }
         public ConstraintConfiguration(bool rampingLimits, bool minUpMinDown, TransmissionType transmissionMode, bool timeDependantStartUpCost, bool relax, int pwsegments, bool tight)
         {

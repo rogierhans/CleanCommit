@@ -226,7 +226,7 @@ namespace CleanCommit.MIP
                     var node = PS.Nodes[n];
                     RESIDUALDemand[n, t] = Model.AddVar(0, node.NodalDemand(t, CC.TimeOffSet), 0.0, GRB.CONTINUOUS, "ResidualDemand" + n + "_" + t);
                     NodalLossOfLoad[n, t] = Model.AddVar(0, node.NodalDemand(t,CC.TimeOffSet), 0.0, GRB.CONTINUOUS, "NodalLoL_" + n + "_" + t);
-                    DemandShed[n, t] = Model.AddVar(0, node.DemandResonsePotential, 0.0, GRB.CONTINUOUS, "DemandResponse" + n + "_" + t);
+                    DemandShed[n, t] = Model.AddVar(0, node.GetDemandResponse(CC), 0.0, GRB.CONTINUOUS, "DemandResponse" + n + "_" + t);
                     NodalInjectionAC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionAC_" + n + "_" + t );
                     NodalInjectionDC[n, t] = Model.AddVar(double.MinValue, double.MaxValue, 0.0, GRB.CONTINUOUS, "NodalInjectionDC_" + n + "_" + t);
                     P2GGeneration[n,t] = Model.AddVar(0, double.MaxValue, 0.0, GRB.CONTINUOUS, "P2G_" + n + "_" + t);

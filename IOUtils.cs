@@ -217,8 +217,7 @@ public     static class IOUtils
                 //var upwardReserves = lines[6].Split(';').Skip(1).Take(maxTime).Select(reserve => double.Parse(reserve)).ToList();
                 //var downwardReserves = lines[7].Split(';').Skip(1).Take(maxTime).Select(reserve => double.Parse(reserve)).ToList();
 
-                var node = new Node(id, name, unitIndices, storageIndices, RESIndices);
-                node.DemandResonsePotential =  demandResponse;
+                var node = new Node(id, name, unitIndices, storageIndices, RESIndices, demandResponse);
                 //node.PrintInfo();
                 nodes.Add(node);
             }

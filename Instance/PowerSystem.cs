@@ -88,16 +88,7 @@ namespace CleanCommit.Instance
         }
 
      
-        public PowerSystem GetPowerSystemAtNode(Node node, List<double> nodalInjection, List<double> nodalReserve)
-        {
-            var newNode  = node.CopyWithExport(nodalInjection);
-            var newUnits = node.Units;
-            var newRES = node.RES;
-            var newStore = node.StorageUnits;
-            var newPS = new PowerSystem("", newUnits, new List<Node>() { newNode }, new List<TransmissionLineAC>(), new List<TransmissionLineDC>(), newStore, newRES, new double[0, 0]);
-            newPS.Reserves = nodalReserve.ToList();
-            return newPS;
-        }
+
 
         public void GetTableUnits()
         {

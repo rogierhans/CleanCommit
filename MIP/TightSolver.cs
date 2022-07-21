@@ -23,12 +23,12 @@ namespace CleanCommit
             CC = cc;
             env = new GRBEnv();
             model = new GRBModel(env);
-           // model.SetCallback(new ConsoleOverwrite());
+            // model.SetCallback(new ConsoleOverwrite());
             //model.Set("LogFile", @"C:\Users\4001184\Desktop\Glog.txt");
             // model.Parameters.Threads = 1;
             model.Set("DisplayInterval", "1");
             model.Set("MIPGap", "0.00001");
-           // model.Set(GRB.IntParam.LogToConsole, 0);
+            // model.Set(GRB.IntParam.LogToConsole, 0);
             //model.Set("Method", "1");
             //model.Set("IntFeasTol", "0.000000001");
         }
@@ -170,7 +170,7 @@ namespace CleanCommit
         public Solution CO2Optimzation(int TimeLimit, double fraction)
         {
             string RootFolder = @"E:\2022Results\CO2\";
-            string Folder = RootFolder ;
+            string Folder = RootFolder;
             Directory.CreateDirectory(Folder);
 
             //Solve Original Model
@@ -203,7 +203,7 @@ namespace CleanCommit
             DateTime dt = new DateTime(year, 1, 1);
             dt = dt.AddHours(CC.TimeOffSet);
             File.AppendAllText(RootFolder + @"\text.txt",
-                + fraction + "\t"
+                +fraction + "\t"
                 + PS + "\t"
                 + year + "\t" +
                 +CC.TimeOffSet + "\t"
@@ -306,6 +306,8 @@ namespace CleanCommit
         {
             model.Parameters.TimeLimit = TimeLimit;
             model.Parameters.Method = v;
+            if (v == 2)
+                model.Parameters.Crossover = 0;
             model.Optimize();
             return new Solution(model, Objective, Variables, PS, CC, TC, PBC);
         }

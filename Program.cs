@@ -80,10 +80,10 @@ namespace CleanCommit
 
 
             // CFMaximazation();
-
+            //Base
             var exp = new Experiment();
-            GLOBAL.PMAXMultiplier = 0.8;
-            exp.AllInstancesRun("PMAX80");
+           // GLOBAL.PMAXMultiplier = 0.8;
+            exp.AllInstancesRun("Base");
            // GLOBAL.DemandMultiplier = 1.1;
            // exp.AllInstancesRun("Demand110");
            // GLOBAL.DemandMultiplier = 1.2;

@@ -230,19 +230,19 @@ namespace CleanCommit
             int timehorizon = 8760;
             var CC = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
             {
-                // Adequacy = true
+               // Adequacy = true
             };
             CC.SetLimits(0, timehorizon);
             //Console.WriteLine("Years Reduced, constriants on");
             //Console.ReadLine();
-            foreach (var (instance, startYear) in new List<(string, int)>() { ("DE_2040", 1982), ("GA_2040", 1982), ("NT_2040", 1982) })//TYDNPInstances)
+            foreach (var (instance,startYear) in new List<(string,int)>() { ("DE_2040", 2011), ("GA_2040", 2011), ("NT_2040", 2008) })//TYDNPInstances)
             {
                 for (int year = startYear; year <= 2010; year++)
                 {
                     string filename = @"E:\ACDC\" + instance + "_" + year + ".uc";
                     PowerSystem PS = IOUtils.GetPowerSystem(filename);
                     //PS.Nodes.ForEach(x => x.PrintCapacity());
-                    // PS.REDUCEUNITS();
+                   // PS.REDUCEUNITS();
                     //Console.ReadLine();
                     //PS.Nodes.ForEach(x => x.PrintCapacity());
                     //Console.ReadLine();
@@ -277,70 +277,6 @@ namespace CleanCommit
                         TS.Kill();
                     }
                 }
-            }
-        }
-
-
-        public void AllCheck(string extra)
-        {
-
-            int timehorizon = 24 * 30;
-            var CCCost = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
-            {
-                IgnoreDR = true
-                // Adequacy = true
-            };
-
-            CCCost.SetLimits(0, timehorizon);
-
-            var ADEQ = new ConstraintConfiguration(false, false, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
-            {
-                IgnoreDR = true,
-                Adequacy = true
-            };
-            ADEQ.SetLimits(0, timehorizon);
-
-
-            var Full = new ConstraintConfiguration(true, true, ConstraintConfiguration.TransmissionType.TradeBased, false, true, 1, false)
-            {
-                IgnoreDR = true
-                // Adequacy = true
-            };
-            Full.SetLimits(0, timehorizon);
-
-            foreach (var (instance, startYear) in new List<(string, int)>() { ("DE_2040", 1982), ("GA_2040", 1982), ("NT_2040", 1982) })//TYDNPInstances)
-            {
-                foreach (var cc in new List<ConstraintConfiguration>() { ADEQ, CCCost, Full })
-                    for (int year = startYear; year <= 2010; year++)
-                    {
-                        string filename = @"E:\ACDC\" + instance + "_" + year + ".uc";
-                        PowerSystem PS = IOUtils.GetPowerSystem(filename);
-
-                        Run();
-                        void Run()
-                        {
-                            TightSolver TS = new TightSolver(PS, cc);
-                            TS.ConfigureModel();
-                            var output = TS.NewSolve(36000, 1);
-                            //Console.ReadLine();
-                            List<object> cells = new List<object>() {
-                        year,
-                        PS.ToString(),
-                        CCCost.ToString(),
-                        output.LOLCounter,
-                        output.DRCounter,
-                        output.GurobiCost,
-                        output.GurobiCostLOL,
-                        output.GurobiCostLOR,
-                        output.GurobiCostDR,
-                        output.GurobiCostGeneration,
-                        output.GurobiCostCycle,
-                        output.ComputationTime };
-                            var line = string.Join("\t", cells);
-                            File.AppendAllText(@"C:\Users\" + Environment.UserName + @"\Desktop\Check.txt", line + "\n");
-                            TS.Kill();
-                        }
-                    }
             }
         }
 
