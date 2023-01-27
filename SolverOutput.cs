@@ -110,7 +110,7 @@ namespace CleanCommit
                 for (int u = 0; u < totalUnits; u++)
                 {
                     var unit = PS.Units[u];
-                    Dispatch[t, u] = variables.P[t, u].X + variables.Commit[t, u].X * unit.pMin;
+                    Dispatch[t, u] = variables.P[t, u].X + variables.Commit[t, u].X * unit.PMin;
                     TotalDispatch[t] += Dispatch[t, u];
                     // Reserve[t, u] = variables.PotentialP[t, u].X - variables.P[t, u].X;
                     //TotalReserve[t] += Reserve[t, u];
