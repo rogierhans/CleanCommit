@@ -10,7 +10,6 @@ namespace CleanCommit.Instance
     {
         public int ID;
         public string StorageID;
-        
         public List<double> Inflows;
 
         public Inflow(int iD, string storageID, List<double> inflows)

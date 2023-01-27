@@ -54,22 +54,16 @@ namespace CleanCommit.Instance
 
 
 
-
-        public void AdecuacyTest()
-        {
-            Adequacy = true;
-        }
-
         public override string ToString()
         {
+            string Str(bool b)
+            {
+                if (b) return "1"; else return "0";
+            }
             return Str(Relax) + Str(RampingLimits) + Str(MinUpMinDown) + Str(TimeDependantStartUpCost) + TransmissionMode + Str(Tight) +  TotalTime + "_" + Reserves.Count();
         }
 
 
-        private string Str(bool b)
-        {
-            if (b) return "1"; else return "0";
-        }
 
         public ConstraintConfiguration Copy()
         {

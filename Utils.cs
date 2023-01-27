@@ -13,9 +13,8 @@ namespace CleanCommit
     {
         public static string DropBoxPath = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName;
         public static string InstanceFolder = DropBoxPath + @"\Data\NewInstances\";
-        public static string LogFolder =  DropBoxPath + @"\Output\";
-        public static string OutputFolder = @"E:\Output\";// DropBoxPath + @"\Output\";// Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName + @"\Output\";
-        //public static string OutputFolder = @"C:\Users\Rogier\Desktop\output\";// Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName + @"\Output\";
+        public static string LogFolder = DropBoxPath + @"\Output\";
+        public static string OutputFolder = @"E:\Output\";
         public static Random RNG = new Random();
         public static Dictionary<string, List<string>> ReadFolder(string folder)
         {
@@ -166,7 +165,8 @@ namespace CleanCommit
 
         }
 
-        public static void L(object o) {
+        public static void L(object o)
+        {
             Console.WriteLine(o.ToString());
             Console.ReadLine();
         }
@@ -238,7 +238,8 @@ namespace CleanCommit
             lines.Add("</" + identifier + ">");
             return lines;
         }
-        public static void PrintArray(object[,] array) {
+        public static void PrintArray(object[,] array)
+        {
             for (int i = 0; i < array.GetLength(0); i++)
             {
                 string line = "";
@@ -348,7 +349,7 @@ namespace CleanCommit
             }
         }
 
-        
+
     }
     /// <summary>
     /// Functions for performing common Json Serialization operations.

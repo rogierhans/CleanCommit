@@ -30,11 +30,7 @@ namespace CleanCommit.MIP
             var upwardRampingLimitNormal = unit.RU * Variable.Commit[t, u];
             var upwardRampingLimitStartup = (unit.SU - unit.pMin - unit.RU) * Variable.Start[t, u];
             var upwardRampingLimit = upwardRampingLimitNormal + upwardRampingLimitStartup;
-           // Console.ReadLine();
-            //Console.WriteLine("check dit even");
             UpwardRampingConstr[t, u] = Model.AddConstr(Variable.P[t, u] - Variable.P[t - 1, u] <= upwardRampingLimit, "r" + u + "t" + t);
-           // UpwardRampingConstr[t, u] = Model.AddConstr(Variable.PotentialP[t, u] - Variable.P[t - 1, u] <= upwardRampingLimit, "r" + u + "t" + t);
-
             var downwardRampingLimitNormal = unit.RD * Variable.Commit[t - 1, u];
             var downwardRampingLimitShutdown = Variable.Stop[t, u] * (unit.SD - unit.pMin - unit.RD);
             var downwardRampingLimit = downwardRampingLimitNormal + downwardRampingLimitShutdown;

@@ -224,7 +224,7 @@ namespace CleanCommit.MIP
                 for (int n = 0; n < totalNodes; n++)
                 {
 
-                    cost += Vars.DemandShed[n, t] * PS.DRSCost;
+                    cost += Vars.DemandShed[n, t] * PS.DSRCost;
                 }
             }
             Model.AddConstr(DRCost == cost, "");

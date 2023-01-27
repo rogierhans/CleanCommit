@@ -59,20 +59,13 @@
     <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuildSolutionFromPartialSolutions.cs" />
     <Compile Include="CFMaximization.cs" />
-    <Compile Include="Experiment.cs" />
     <Compile Include="Instance\PTDFCalculator2.cs" />
     <Compile Include="Instance\Reserve.cs" />
-    <Compile Include="MIP\CallBackTrans.cs" />
     <Compile Include="MIP\Objective.cs" />
-    <Compile Include="MIP\OverlapConstraint.cs" />
-    <Compile Include="MIP\P2GConstraint.cs" />
     <Compile Include="MIP\RecalcSolution.cs" />
     <Compile Include="MIP\ReserveConstraint.cs" />
-    <Compile Include="MIP\RollingSolver.cs" />
     <Compile Include="Solution.cs" />
-    <Compile Include="OldCode\ClusterMIP.cs" />
     <Compile Include="Instance\ConstraintConfiguration.cs" />
     <Compile Include="MIP\Constraint.cs" />
     <Compile Include="MIP\GenerationConstraint.cs" />
@@ -86,23 +79,13 @@
     <Compile Include="MIP\TimeDepStartConstraint.cs" />
     <Compile Include="MIP\TransmissionConstraint.cs" />
     <Compile Include="MIP\Variables.cs" />
-    <Compile Include="OldCode\ColumnSolver.cs" />
-    <Compile Include="OldCode\CopySolution.cs" />
-    <Compile Include="OldCode\Graph.cs" />
     <Compile Include="IOUtils.cs" />
-    <Compile Include="OldCode\LPSolver.cs" />
-    <Compile Include="OldCode\MIPSolver.cs" />
     <Compile Include="Instance\Node.cs" />
-    <Compile Include="OldCode\Population.cs" />
     <Compile Include="Instance\PiecewiseGeneration.cs" />
     <Compile Include="Instance\PowerSystem.cs" />
-    <Compile Include="OldCode\Print.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="OldCode\PTDFCalculator.cs" />
     <Compile Include="Instance\ResGeneration.cs" />
-    <Compile Include="OldCode\Solution.cs" />
-    <Compile Include="OldCode\Solver.cs" />
     <Compile Include="Instance\StorageUnit.cs" />
     <Compile Include="MIP\TightSolver.cs" />
     <Compile Include="Instance\TransmissionLine.cs" />

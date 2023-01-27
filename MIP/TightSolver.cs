@@ -23,14 +23,8 @@ namespace CleanCommit
             CC = cc;
             env = new GRBEnv();
             model = new GRBModel(env);
-            model.SetCallback(new ConsoleOverwrite());
-            //model.Set("LogFile", @"C:\Users\4001184\Desktop\Glog.txt");
-            // model.Parameters.Threads = 1;
             model.Set("DisplayInterval", "1");
             model.Set("MIPGap", "0.00001");
-            model.Set(GRB.IntParam.LogToConsole, 0);
-            //model.Set("Method", "1");
-            //model.Set("IntFeasTol", "0.000000001");
         }
         public TightSolver(PowerSystem ps, ConstraintConfiguration cc, double gap)
         {
@@ -39,17 +33,10 @@ namespace CleanCommit
             CC = cc;
             env = new GRBEnv();
             model = new GRBModel(env);
-            model.SetCallback(new ConsoleOverwrite());
-            //model.Set("LogFile", @"C:\Users\4001184\Desktop\Glog.txt");
             model.Set("DisplayInterval", "1");
-            //model.Set("MIPGap", gap.ToString());
-            //model.Set("IntFeasTol", "0.000000001");
+            model.Set("MIPGap", gap.ToString());
         }
 
-        public void SetOutputFlag(bool OutputFlag)
-        {
-            model.Set("OutputFlag", OutputFlag ? "1" : "0");
-        }
 
         public virtual void ConfigureModel()
         {
@@ -100,8 +87,6 @@ namespace CleanCommit
             var ReserveConstraint = new ReserveConstraint(PS, CC, model, Variables);
             ReserveConstraint.AddConstraint();
 
-            //var P2G = new P2GConstraint(PS, CC, model, Variables);
-            //P2G.AddConstraint();
         }
 
         public void Kill()
@@ -150,7 +135,7 @@ namespace CleanCommit
                 + fraction + "\t"
                 + PS + "\t"
                 + year + "\t" +
-                +CC.TimeOffSet + "\t" 
+                +CC.TimeOffSet + "\t"
                 + dt.ToString() + "\t"
                 + solution2.ComputationTime + "\t"
                 + solution3.ComputationTime + "\t"
@@ -166,11 +151,11 @@ namespace CleanCommit
             return solution2;
         }
 
-        public Solution LOLOptimzation(int TimeLimit, double fraction, string folderName, Action<Objective> a )
+        public Solution LOLHOptimzation(int TimeLimit, double fraction, string folderName, Action<Objective> a)
         {
             string extraComment = "";
             string RootFolder = @"C:\Users\" + Environment.UserName + @"\OneDrive - Universiteit Utrecht\2022Results\extra14dagen\" + folderName + @"\";
-            string Folder = RootFolder ;
+            string Folder = RootFolder;
             Directory.CreateDirectory(Folder);
 
             //Solve Original Model
@@ -187,15 +172,16 @@ namespace CleanCommit
                 a(Objective);
                 model.Optimize();
                 extraComment = model.Status.ToString();
-                if (model.Status == GRB.Status.NUMERIC) {
+                if (model.Status == GRB.Status.NUMERIC)
+                {
                     extraComment += "_nummeric";
                 }
-                else if(model.Status == GRB.Status.OPTIMAL)
+                else if (model.Status == GRB.Status.OPTIMAL)
                     solution2 = new Solution(model, Objective, Variables, PS, CC, TC, PBC);
             }
             solution2.ToCSV(Folder + @"\" + GRB.MINIMIZE + "_" + PS + "_" + CC.TimeOffSet);
 
-            
+
 
             int year = int.Parse(PS.ToString().Split('_')[2]);
             DateTime dt = new DateTime(year, 1, 1);
@@ -235,18 +221,18 @@ namespace CleanCommit
             return new SolverOutput(Variables, Objective, model, model.Runtime); ;
         }
 
-        public SolverOutput Solve(int TimeLimit, int v)
+        public SolverOutput Solve(int TimeLimit, int methodCode)
         {
             model.Parameters.TimeLimit = TimeLimit;
-            model.Parameters.Method = v;
+            model.Parameters.Method = methodCode;
             model.Optimize();
             return new SolverOutput(Variables, Objective, model, model.Runtime);
         }
 
-        public Solution NewSolve(int TimeLimit, int v)
+        public Solution NewSolve(int TimeLimit, int methodCode)
         {
             model.Parameters.TimeLimit = TimeLimit;
-            model.Parameters.Method = v;
+            model.Parameters.Method = methodCode;
             model.Optimize();
             return new Solution(model, Objective, Variables, PS, CC, TC, PBC);
         }

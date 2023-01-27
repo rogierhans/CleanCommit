@@ -28,8 +28,6 @@ public     static class IOUtils
             var transmissionLinesDC = ParseLinesDC(GetLineInterval("transmissionDC", lines).Skip(1).ToList(), nodes);
             var calc = new NewPTDF(transmissionLinesAC, nodes);
             double[,] ptdf = calc.GetPTDF();
-
-            //new PTDFCalculator(transmissionLinesAC, nodes).GetPTDF();
             return new PowerSystem(filenameInstance.Split('\\').Last(), units, nodes, transmissionLinesAC, transmissionLinesDC, storageUnits, resGeneration, ptdf);
         }
 
@@ -202,19 +200,12 @@ public     static class IOUtils
                 var input = line.Split(';');
                 int id = int.Parse(input[0]);
                 string name = input[1];
-
-                // The ifstatement here is incase a region has zero units/storageunits
                 var unitIndices = GetValues(input[2]).Select(index => UnitList.First(unit => unit.ID==index)).ToList();
                 var storageIndices = GetValues(input[3]).Select(index => StorageList.First(unit => unit.ID == index)).ToList();
                 var RESIndices = GetValues(input[4]).Select(index => RESList.First(unit => unit.ID == index)).ToList();
                 var demandResponse = double.Parse(input[5]);
-                //var demands = lines[5].Split(';').Skip(1 + skipTime).Take(maxTime).Select(demand => double.Parse(demand) * U.DemandFactor).ToList();
-                //var upwardReserves = lines[6].Split(';').Skip(1).Take(maxTime).Select(reserve => double.Parse(reserve)).ToList();
-                //var downwardReserves = lines[7].Split(';').Skip(1).Take(maxTime).Select(reserve => double.Parse(reserve)).ToList();
-
                 var node = new Node(id, name, unitIndices, storageIndices, RESIndices);
                 node.DemandResonsePotential =  demandResponse;
-                //node.PrintInfo();
                 nodes.Add(node);
             }
 
@@ -301,15 +292,6 @@ public     static class IOUtils
 
 
             }
-
-            //foreach (var line in inflowLines)
-            //{
-            //    var input = line.Split(';');
-            //    int StorageID = int.Parse(input[1]);
-            //    var inflows = input.Skip(2).Select(value => double.Parse(value)).ToList();
-            //    storageUnits[StorageID].SetInflows(inflows);
-            //}
-
             return storageUnits;
         }
 

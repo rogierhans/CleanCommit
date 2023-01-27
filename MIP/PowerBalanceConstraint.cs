@@ -14,19 +14,11 @@ namespace CleanCommit.MIP
         }
 
         public GRBConstr[,] NodalPowerBalance;
-        //public GRBVar[,] NodalResidualDemand;
-        //  public GRBVar[,] Boven;
         public override void AddConstraint()
         {
 
             NodalPowerBalance = new GRBConstr[totalNodes, totalTime];
-            //NodalResidualDemand = new GRBVar[totalNodes, totalTime];
-            //Boven = new GRBVar[totalNodes, totalTime];
             ForEachNodeAndTimeStep((n, t) => AddPowerBalanceConstraint(n, t));
-            //  ForEachNodeAndTimeStep((n, t) => Link(n, t));
-            // ForEachNodeAndTimeStep((n, t) => AddBoven(n, t));
-            //var test = NodalResidualDemand[0, 0] == Boven[0,0];
-            //Model.AddConstr(test, "");
         }
 
 
@@ -43,8 +35,6 @@ namespace CleanCommit.MIP
             GRBLinExpr consumption = new GRBLinExpr();
             consumption += Variable.RESIDUALDemand[n, t];
             consumption += GetNodalTotalCharge(n, t);
-           // consumption += Variable.P2GGeneration[n, t];
-
             NodalPowerBalance[n, t] = Model.AddConstr(generation == consumption, "NodalPowerBalance" + t);
         }
 

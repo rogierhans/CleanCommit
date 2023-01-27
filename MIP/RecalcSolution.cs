@@ -150,7 +150,7 @@ namespace CleanCommit.MIP
                 double perTime = 0;
                 for (int n = 0; n < totalNodes; n++)
                 {
-                    perTime += Solution.DemandShed[n, t] * PS.DRSCost;
+                    perTime += Solution.DemandShed[n, t] * PS.DSRCost;
                 }
                 DRCostPerTime[t] = perTime;
                 DRCost += perTime;

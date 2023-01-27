@@ -39,18 +39,19 @@ namespace CleanCommit.Instance
             if (Inflow.Count == 0) return 0;
             return Inflow[(t+ timeOffset) % Inflow.Count];
         }
-        public string ToFile()
+        public override string ToString()
         {
 
-            List<string> Properties = new List<string>();
-
-            Properties.Add(ID.ToString());
-            Properties.Add(Name);
-            Properties.Add(MaxCharge.ToString());
-            Properties.Add(MaxDischarge.ToString());
-            Properties.Add(MaxEnergy.ToString());
-            Properties.Add(ChargeEffiency.ToString());
-            Properties.Add(DischargeEffiency.ToString());
+            List<string> Properties = new List<string>
+            {
+                ID.ToString(),
+                Name,
+                MaxCharge.ToString(),
+                MaxDischarge.ToString(),
+                MaxEnergy.ToString(),
+                ChargeEffiency.ToString(),
+                DischargeEffiency.ToString()
+            };
 
             return String.Join(";", Properties);
 

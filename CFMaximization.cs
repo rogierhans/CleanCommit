@@ -56,7 +56,7 @@ namespace CleanCommit
                         TightSolver TS = new TightSolver(PS, CC);
                         TS.ConfigureModel();
                         Action<Objective> test = ob => ob.LOLMaxQuadatric();
-                        var output = TS.LOLOptimzation(600, fraction,"LOLMax_" + name, test);
+                        var output = TS.LOLHOptimzation(600, fraction,"LOLMax_" + name, test);
                         TS.Kill();
                     }
                     void Run2()
@@ -64,7 +64,7 @@ namespace CleanCommit
                         TightSolver TS = new TightSolver(PS, CC);
                         TS.ConfigureModel();
                         Action<Objective> test = ob => ob.LOLObjective();
-                        var output = TS.LOLOptimzation(600, fraction, "LOLMin_" + name, test);
+                        var output = TS.LOLHOptimzation(600, fraction, "LOLMin_" + name, test);
                         TS.Kill();
                     }
                 }

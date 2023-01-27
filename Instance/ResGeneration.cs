@@ -19,8 +19,6 @@ namespace CleanCommit.Instance
         {
             ID = id;
             ResValues = resValues;
-            Name = name;//.Replace("\t", "").Replace(" ","");
-            //Console.WriteLine("*{0}*", name); Console.WriteLine("*{0}*", Name);
         }
 
         public double GetValue(int t, int timeOffset) {
@@ -28,7 +26,7 @@ namespace CleanCommit.Instance
         }
 
 
-        public string ToFile()
+        public override string ToString()
         {
             return ID + ";" + Name + ";[" + String.Join(":", ResValues) + "]";
         }

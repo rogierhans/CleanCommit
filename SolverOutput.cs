@@ -343,11 +343,5 @@ namespace CleanCommit
             lines.Add("</" + identifier + ">");
             return lines;
         }
-
-        public void Foto()
-        {
-            var test = new Print();
-            test.PrintUCED(PS, CC, Dispatch, SDispatch, RDispatch, "");
-        }
     }
 }
